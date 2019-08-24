@@ -77,6 +77,9 @@
 (defvar-local reaper-date nil
   "Date displayed in Reaper buffer.")
 
+(defvar-local reaper-update-timer nil
+  "Timer for updating buffer.")
+
 (defvar reaper-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "r") 'reaper-refresh-buffer)
@@ -89,6 +92,7 @@
     (define-key map (kbd "e") 'reaper-edit-entry)
     (define-key map (kbd "t") 'reaper-edit-entry-time)
     (define-key map (kbd "DEL") 'reaper-delete-entry)
+    (define-key map (kbd "Q") 'reaper-kill-buffer)
     map)
   "Keymap for Harvest mode.")
 
@@ -114,7 +118,17 @@
         tabulated-list-entries 'reaper--list-entries
         tabulated-list-padding 3)
   (tabulated-list-init-header)
-  (reaper-refresh-buffer))
+  (reaper-refresh-buffer)
+  ;; Start a timer to update the running timer.
+  (setq reaper-update-timer (run-at-time t 60 'reaper--update-timer)))
+
+(defun reaper--update-timer ()
+  "Update running timers in reaper buffer. Called by `run-at-time'."
+  (if (get-buffer reaper-buffer-name)
+      (with-reaper-buffer
+       (reaper-refresh-buffer))
+    (cancel-timer reaper-update-timer)
+    (setq reaper-update-timer nil)))
 
 (defmacro with-reaper-buffer (&rest body)
   "Run BODY with the Reaper buffer as current."
@@ -343,6 +357,11 @@ Stops any previously running timers."
                                     (cdr (assoc :notes entry)))))
       (reaper-api "DELETE" (format "time_entries/%s" entry-id) nil "Deleted entry")
       (reaper-refresh))))
+
+(defun reaper-kill-buffer ()
+  (interactive)
+  "Kill reaper buffer. Will remove timers and cached data."
+  (kill-buffer reaper-buffer-name))
 
 (defun reaper-edit-entry ()
   "Delete time entry under point."
