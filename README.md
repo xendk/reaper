@@ -24,7 +24,7 @@ Reaper on the other hand:
 
 ## Installation
 
-Either using package.el or:
+Either using package.el to install from [MELPA](https://melpa.org/) or:
 
 ``` emacs-lisp
 (use-package reaper
@@ -62,3 +62,14 @@ Bindings in the buffer:
 Harvest was obviously taken. Reaper alludes to Grim Reaper which I
 sorta have the same kind of relationship with. You know he's there,
 you know he's unavoidable, but that doesn't mean you have to like him.
+
+# Thanks
+
+Thanks to [Kosta Harlan](https://github.com/kostajh) for
+[Harvest.el](https://github.com/kostajh/harvest.el) which served as
+inspiration and initial bootstrapping.
+
+## License
+
+This project is released under the GPL v3 license. See `GPL` for
+details.
