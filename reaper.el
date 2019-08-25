@@ -26,13 +26,6 @@
 
 ;; Interactive tool for tracking time with Harvest.
 
-;; TODO:
-;; Add time entry without starting timer.
-;; When creating timer, remember and default to last used task per project.
-;; Order projects in last used order? Default to last used.
-;; OAuth login.
-;; Async API requests?
-
 (require 'cl-lib)
 (require 'json)
 (require 'url)
