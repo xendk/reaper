@@ -7,6 +7,7 @@
 ;; Version: 0.0.1
 ;; Package-Requires: ((emacs "24.3"))
 ;; Keywords: tools
+;; Url: https://github.com/xendk/reaper
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -33,6 +34,8 @@
 ;; Async API requests?
 
 (require 'cl-lib)
+(require 'json)
+(require 'url)
 
 (defgroup reaper nil
   "Reaper configuration."
@@ -82,17 +85,17 @@
 
 (defvar reaper-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "r") 'reaper-refresh-buffer)
-    (define-key map (kbd "g") 'reaper-refresh)
-    (define-key map (kbd "d") 'reaper-goto-date)
-    (define-key map (kbd "RET") 'reaper-start-timer)
-    (define-key map (kbd "c") 'reaper-start-new-timer)
-    (define-key map (kbd "s") 'reaper-stop-timer)
-    (define-key map (kbd "k") 'reaper-delete-entry)
-    (define-key map (kbd "e") 'reaper-edit-entry)
-    (define-key map (kbd "t") 'reaper-edit-entry-time)
-    (define-key map (kbd "DEL") 'reaper-delete-entry)
-    (define-key map (kbd "Q") 'reaper-kill-buffer)
+    (define-key map (kbd "r") #'reaper-refresh-buffer)
+    (define-key map (kbd "g") #'reaper-refresh)
+    (define-key map (kbd "d") #'reaper-goto-date)
+    (define-key map (kbd "RET") #'reaper-start-timer)
+    (define-key map (kbd "c") #'reaper-start-new-timer)
+    (define-key map (kbd "s") #'reaper-stop-timer)
+    (define-key map (kbd "k") #'reaper-delete-entry)
+    (define-key map (kbd "e") #'reaper-edit-entry)
+    (define-key map (kbd "t") #'reaper-edit-entry-time)
+    (define-key map (kbd "DEL") #'reaper-delete-entry)
+    (define-key map (kbd "Q") #'reaper-kill-buffer)
     map)
   "Keymap for Harvest mode.")
 
@@ -115,12 +118,17 @@
         mode-name "Reaper"
         major-mode 'reaper-mode
         tabulated-list-format reaper--list-format
-        tabulated-list-entries 'reaper--list-entries
+        tabulated-list-entries #'reaper--list-entries
         tabulated-list-padding 3)
   (tabulated-list-init-header)
   (reaper-refresh-buffer)
   ;; Start a timer to update the running timer.
-  (setq reaper-update-timer (run-at-time t 60 'reaper--update-timer)))
+  (setq reaper-update-timer (run-at-time t 60 #'reaper--update-timer)))
+
+(defmacro reaper-with-buffer (&rest body)
+  "Run BODY with the Reaper buffer as current."
+  `(with-current-buffer (reaper--buffer)
+     ,@body))
 
 (defun reaper--update-timer ()
   "Update running timers in reaper buffer. Called by `run-at-time'."
@@ -129,11 +137,6 @@
        (reaper-refresh-buffer))
     (cancel-timer reaper-update-timer)
     (setq reaper-update-timer nil)))
-
-(defmacro reaper-with-buffer (&rest body)
-  "Run BODY with the Reaper buffer as current."
-  `(with-current-buffer (reaper--buffer)
-     ,@body))
 
 (defun reaper ()
   "Open Reaper buffer."
@@ -359,8 +362,8 @@ Stops any previously running timers."
       (reaper-refresh))))
 
 (defun reaper-kill-buffer ()
-  (interactive)
   "Kill reaper buffer. Will remove timers and cached data."
+  (interactive)
   (kill-buffer reaper-buffer-name))
 
 (defun reaper-edit-entry ()
@@ -448,7 +451,9 @@ Returns task id."
         (json-read)))))
 
 (defun reaper-url-insert-file-contents (url &optional visit beg end replace)
-  "Quiet version of `url-insert-file-contents'."
+  "Quiet version of `url-insert-file-contents'.
+URL, VISIT, BEG, END and REPLACE is the same as for
+`url-insert-file-contents'."
   (let ((buffer (url-retrieve-synchronously url t)))
     (unless buffer (signal 'file-error (list url "No Data")))
     (when (fboundp 'url-http--insert-file-helper)
