@@ -125,12 +125,12 @@
 (defun reaper--update-timer ()
   "Update running timers in reaper buffer. Called by `run-at-time'."
   (if (get-buffer reaper-buffer-name)
-      (with-reaper-buffer
+      (reaper-with-buffer
        (reaper-refresh-buffer))
     (cancel-timer reaper-update-timer)
     (setq reaper-update-timer nil)))
 
-(defmacro with-reaper-buffer (&rest body)
+(defmacro reaper-with-buffer (&rest body)
   "Run BODY with the Reaper buffer as current."
   `(with-current-buffer (reaper--buffer)
      ,@body))
@@ -139,7 +139,7 @@
   "Open Reaper buffer."
   (interactive)
   (reaper--check-credentials)
-  (with-reaper-buffer
+  (reaper-with-buffer
    (select-window (display-buffer (current-buffer)))))
 
 (defun reaper--check-credentials ()
@@ -162,14 +162,14 @@ Will create it if it doesn't exist yet."
 (defun reaper-refresh ()
   "Refresh data from Harvest and update buffer."
   (interactive)
-  (with-reaper-buffer
+  (reaper-with-buffer
    (setq reaper-timeentries nil)
    (reaper-refresh-buffer)))
 
 (defun reaper-refresh-entries ()
   "Fetch time-entries from Harvest."
   (reaper--check-credentials)
-  (with-reaper-buffer
+  (reaper-with-buffer
    (message "Refreshing data from Harvest...")
    (let* ((response-entries
            (reaper-alist-get '(time_entries)
@@ -202,7 +202,7 @@ Will create it if it doesn't exist yet."
 
 (defun reaper-refresh-project-tasks ()
   "Fetch projects and tasks from Harvest."
-  (with-reaper-buffer
+  (reaper-with-buffer
    (unless reaper-project-tasks
      (message "Refreshing projects and tasks from Harvest, please hold.")
      (let ((reaper-project-tasks-response
@@ -236,7 +236,7 @@ Will create it if it doesn't exist yet."
 
 (defun reaper--list-entries ()
   "Return list of entries for `tabulated-list-mode'."
-  (with-reaper-buffer
+  (reaper-with-buffer
    (unless (bound-and-true-p reaper-timeentries)
      (reaper-refresh-entries))
    (cl-loop for (id . entry) in reaper-timeentries
