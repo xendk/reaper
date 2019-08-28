@@ -4,7 +4,7 @@
 
 ;; Author: Thomas Fini Hansen <xen@xen.dk>
 ;; Created: August 11, 2019
-;; Version: 0.0.1
+;; Version: 1.0.0
 ;; Package-Requires: ((emacs "24.3"))
 ;; Keywords: tools
 ;; Url: https://github.com/xendk/reaper
