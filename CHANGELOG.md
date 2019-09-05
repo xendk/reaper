@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## Unreleased
 ### Added
 - `reaper-start-timer-and-quit-window`
+- Autoload `reaper`
 
 ### Changed
 - RET now closes the window after starting timer

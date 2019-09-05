@@ -132,6 +132,7 @@
     (cancel-timer reaper-update-timer)
     (setq reaper-update-timer nil)))
 
+;;;###autoload
 (defun reaper ()
   "Open Reaper buffer."
   (interactive)
