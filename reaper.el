@@ -81,7 +81,8 @@
     (define-key map (kbd "r") #'reaper-refresh-buffer)
     (define-key map (kbd "g") #'reaper-refresh)
     (define-key map (kbd "d") #'reaper-goto-date)
-    (define-key map (kbd "RET") #'reaper-start-timer)
+    (define-key map (kbd "SPC") #'reaper-start-timer)
+    (define-key map (kbd "RET") #'reaper-start-timer-and-quit-window)
     (define-key map (kbd "c") #'reaper-start-new-timer)
     (define-key map (kbd "s") #'reaper-stop-timer)
     (define-key map (kbd "k") #'reaper-delete-entry)
@@ -323,6 +324,12 @@ Stops any previously running timers."
   (when reaper-running-timer
     (reaper-api "PATCH" (format "time_entries/%s/stop" reaper-running-timer) nil "Stopped timer")
     (reaper-refresh)))
+
+(defun reaper-start-timer-and-quit-window ()
+  "Start timer at point and close window."
+  (interactive)
+  (reaper-start-timer)
+  (quit-window))
 
 (defun reaper-start-new-timer ()
   "Create a new running timer."
