@@ -310,7 +310,7 @@ goes back a month or year."
     (and time (format-time-string "%Y-%m-%d" time))))
 
 (defun reaper-start-timer ()
-  "Start the timer under point.
+  "Start the timer at point.
 Stops any previously running timers."
   (interactive)
   (when (tabulated-list-get-id)
@@ -342,7 +342,7 @@ Stops any previously running timers."
     (reaper-refresh)))
 
 (defun reaper-delete-entry ()
-  "Delete time entry under point."
+  "Delete time entry at point."
   (interactive)
   (let* ((entry-id (tabulated-list-get-id))
          (entry (assoc entry-id reaper-timeentries)))
@@ -360,7 +360,7 @@ Stops any previously running timers."
   (kill-buffer reaper-buffer-name))
 
 (defun reaper-edit-entry ()
-  "Delete time entry under point."
+  "Delete time entry at point."
   (interactive)
   (let* ((entry-id (tabulated-list-get-id))
          (entry (assoc entry-id reaper-timeentries)))
@@ -376,7 +376,7 @@ Stops any previously running timers."
         (reaper-refresh)))))
 
 (defun reaper-edit-entry-time ()
-  "Edit time of entry under point."
+  "Edit time of entry at point."
   (interactive)
   (let* ((entry-id (tabulated-list-get-id))
          (entry (assoc entry-id reaper-timeentries))
