@@ -114,8 +114,8 @@
         tabulated-list-format reaper--list-format
         tabulated-list-entries #'reaper--list-entries
         tabulated-list-padding 3)
-  (tabulated-list-init-header)
   (reaper-refresh-buffer)
+  (tabulated-list-init-header)
   ;; Start a timer to update the running timer.
   (setq reaper-update-timer (run-at-time t 60 #'reaper--update-timer)))
 
