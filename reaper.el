@@ -117,20 +117,25 @@
   (reaper-refresh-buffer)
   (tabulated-list-init-header)
   ;; Start a timer to update the running timer.
-  (setq reaper-update-timer (run-at-time t 60 #'reaper--update-timer)))
+  (setq reaper-update-timer (run-at-time t 60 #'reaper--update-timer))
+  (add-hook 'kill-buffer-hook #'reaper-kill-buffer-hook))
 
 (defmacro reaper-with-buffer (&rest body)
   "Run BODY with the Reaper buffer as current."
   `(with-current-buffer (reaper--buffer)
      ,@body))
 
-(defun reaper--update-timer ()
-  "Update running timers in reaper buffer. Called by `run-at-time'."
-  (if (get-buffer reaper-buffer-name)
-      (reaper-with-buffer
-       (reaper-refresh-buffer))
+(defun reaper-kill-buffer-hook ()
+  "Cancel running timers when the buffer gets killed."
+  (when reaper-update-timer
     (cancel-timer reaper-update-timer)
     (setq reaper-update-timer nil)))
+
+(defun reaper--update-timer ()
+  "Update running timers in reaper buffer. Called by `run-at-time'."
+  (when (get-buffer reaper-buffer-name)
+    (reaper-with-buffer
+     (reaper-refresh-buffer))))
 
 ;;;###autoload
 (defun reaper ()

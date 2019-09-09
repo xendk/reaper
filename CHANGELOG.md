@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Editing an entry fetches project/tasks first, if not already
   fetched
 - Compatibility with `display-line-numbers-mode`
+- Use a `kill-buffer-hook` to cancel timer
 
 ## 1.0.0 - 2019-08-28
 ### Added
