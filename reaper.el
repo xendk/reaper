@@ -368,8 +368,10 @@ Stops any previously running timers."
   (kill-buffer reaper-buffer-name))
 
 (defun reaper-edit-entry ()
-  "Delete time entry at point."
+  "Edit entry at point."
   (interactive)
+  (unless (bound-and-true-p reaper-project-tasks)
+    (reaper-refresh-project-tasks))
   (let* ((entry-id (tabulated-list-get-id))
          (entry (assoc entry-id reaper-timeentries)))
     (when entry
