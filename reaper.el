@@ -189,6 +189,8 @@
                      (cons :task (reaper-alist-get '(task name) entry))
                      (cons :is_running (reaper-alist-get '(is_running) entry))
                      (cons :hours (reaper-alist-get '(hours) entry))
+                     (cons :started_time (reaper-alist-get '(started_time) entry))
+                     (cons :ended_time (reaper-alist-get '(ended_time) entry))
                      (cons :notes (let ((notes (reaper-alist-get '(notes) entry)))
                                     (if notes (decode-coding-string notes 'utf-8) ""))))))
             ;; API returns newest entry first. Simply reverse the list.
@@ -418,6 +420,21 @@ Stops any previously running timers."
          (new-time (reaper--time-to-hours-calculation (read-string "New time: " time)))
          (harvest-payload (make-hash-table :test 'equal)))
     (puthash "hours" new-time harvest-payload)
+    (reaper-api "PATCH" (format "time_entries/%s" entry-id) harvest-payload "Updated entry")
+    (reaper-refresh)))
+
+(defun reaper-edit-entry-start-end-time ()
+  "Edit start/end time of entry at point."
+  (interactive)
+  (let* ((entry-id (tabulated-list-get-id))
+         (entry (assoc entry-id reaper-timeentries))
+         (start-time (cdr (assoc :started_time entry)))
+         (new-start-time (read-string "New start time: " start-time))
+         (end-time (cdr (assoc :ended_time entry)))
+         (new-end-time (read-string "New end time: " end-time))
+         (harvest-payload (make-hash-table :test 'equal)))
+    (puthash "started_time" new-start-time harvest-payload)
+    (puthash "ended_time" new-end-time harvest-payload)
     (reaper-api "PATCH" (format "time_entries/%s" entry-id) harvest-payload "Updated entry")
     (reaper-refresh)))
 
