@@ -13,6 +13,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - RET now closes the window after starting timer
 - SPC start tracking on entry at point
 
+### Fixed
+- Editing an entry fetches project/tasks first, if not already
+  fetched
+- Compatibility with `display-line-numbers-mode`
+
 ## 1.0.0 - 2019-08-28
 ### Added
 - Initial implementation
