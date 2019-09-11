@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Autoload `reaper`
 
 ### Changed
+- Starting new timer now defaults to last used project and task
 - RET now closes the window after starting timer
 - SPC start tracking on entry at point
 

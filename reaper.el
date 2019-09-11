@@ -343,8 +343,8 @@ Stops any previously running timers."
   (unless (bound-and-true-p reaper-project-tasks)
     (reaper-refresh-project-tasks))
   (let* (
-         (project (reaper-read-project))
-         (task-id (reaper-read-task project))
+         (project (reaper-read-project (cdr (assoc :id (cdr (car reaper-project-tasks))))))
+         (task-id (reaper-read-task project (car (car (cdr (assoc :tasks project))))))
          (notes (read-string "Description: "))
          (harvest-payload (make-hash-table :test 'equal)))
     (puthash "project_id" (cdr (assoc :id project)) harvest-payload)
@@ -352,6 +352,7 @@ Stops any previously running timers."
     (puthash "spent_date" (format-time-string "%Y-%m-%d") harvest-payload)
     (puthash "notes" notes harvest-payload)
     (reaper-api "POST" "time_entries" harvest-payload "Started timer")
+    (reaper--last-used project task-id)
     (reaper-refresh)))
 
 (defun reaper-delete-entry ()
@@ -380,7 +381,7 @@ Stops any previously running timers."
   (let* ((entry-id (tabulated-list-get-id))
          (entry (assoc entry-id reaper-timeentries)))
     (when entry
-      (let* ((project (reaper-read-project entry))
+      (let* ((project (reaper-read-project (cdr (assoc :project_id entry))))
              (task-id (reaper-read-task project (cdr (assoc :task_id entry))))
              (notes (read-string "Description: " (cdr (assoc :notes entry))))
              (harvest-payload (make-hash-table :test 'equal)))
@@ -416,9 +417,9 @@ Stops any previously running timers."
   (let* ((projects (mapcar (lambda (project)
                              (cons (concat "[" (cdr (assoc :code project)) "] " (cdr (assoc :name project))) project))
                            reaper-project-tasks))
-         (default (when default (cdr (assoc (cdr (assoc :project_id default)) reaper-project-tasks))))
+         (default (cdr (assoc default reaper-project-tasks)))
          (default-option (when default (concat "[" (cdr (assoc :code default)) "] " (cdr (assoc :name default)))))
-         (project (cdr (assoc (completing-read "Project: " projects nil t default-option) projects))))
+         (project (cdr (assoc (completing-read "Project: " projects nil t nil nil default-option) projects))))
     project))
 
 (defun reaper-read-task (project &optional default)
@@ -429,6 +430,14 @@ Returns task id."
        (default (when default (cdr (assoc default (cdr (assoc :tasks project))))))
        (task-id (cdr (assoc (completing-read "Task: " tasks nil t default) tasks))))
     task-id))
+
+(defun reaper--last-used (project task-id)
+  "Save PROJECT and TASK-ID as last used."
+  (setq reaper-project-tasks (delq project reaper-project-tasks))
+  (let ((task (assoc task-id (cdr (assoc :tasks project)))))
+    (delq task (cdr (assoc :tasks project)))
+    (push task (cdr (assoc :tasks project))))
+  (push project reaper-project-tasks))
 
 (defun reaper-api (method path payload completion-message)
   "Make an METHOD call to PATH with PAYLOAD and COMPLETION-MESSAGE."
