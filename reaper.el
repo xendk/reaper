@@ -428,7 +428,7 @@ Returns task id."
   (let*
       ((tasks (mapcar (lambda (task) (cons (cdr task) (car task))) (cdr (assoc :tasks project))))
        (default (when default (cdr (assoc default (cdr (assoc :tasks project))))))
-       (task-id (cdr (assoc (completing-read "Task: " tasks nil t default) tasks))))
+       (task-id (cdr (assoc (completing-read "Task: " tasks nil t nil nil default) tasks))))
     task-id))
 
 (defun reaper--last-used (project task-id)
