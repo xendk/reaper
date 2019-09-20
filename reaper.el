@@ -365,6 +365,13 @@ Stops any previously running timers."
                                     (cdr (assoc :project entry))
                                     (cdr (assoc :task entry))
                                     (cdr (assoc :notes entry)))))
+      ;; Go forward a line, so tabulated-list-mode has an entry to
+      ;; stick to.
+      (forward-line 1)
+      (unless (tabulated-list-get-id)
+        ;; If there's no entry on the following line, go back to the
+        ;; previous instead.
+        (forward-line -2))
       (reaper-api "DELETE" (format "time_entries/%s" entry-id) nil "Deleted entry")
       (reaper-refresh))))
 

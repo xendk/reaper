@@ -18,6 +18,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
   fetched
 - Compatibility with `display-line-numbers-mode`
 - Use a `kill-buffer-hook` to cancel timer
+- Make point stick around when deleting entries
 
 ## 1.0.0 - 2019-08-28
 ### Added
