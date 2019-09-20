@@ -434,9 +434,10 @@ Returns task id."
 (defun reaper--last-used (project task-id)
   "Save PROJECT and TASK-ID as last used."
   (setq reaper-project-tasks (delq project reaper-project-tasks))
-  (let ((task (assoc task-id (cdr (assoc :tasks project)))))
-    (delq task (cdr (assoc :tasks project)))
-    (push task (cdr (assoc :tasks project))))
+  (let* ((tasks (cdr (assoc :tasks project)))
+         (task (assoc task-id tasks)))
+    (cons task (delq task tasks))
+    (setf (cdr (assoc :tasks project)) (cons task (delq task tasks))))
   (push project reaper-project-tasks))
 
 (defun reaper-api (method path payload completion-message)
