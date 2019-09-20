@@ -49,7 +49,8 @@ Bindings in the buffer:
 * `g` - refresh the list.
 * `d` - change date. Supply a date in Y-M-D or Y.M.D format. Year
   or year and month may be left out.
-* `RET` - restart the timer at point.
+* `SPC` - restart the timer at point.
+* `RET` - restart the timer at point and bury buffer.
 * `c` - start a new timer.
 * `s` - stop running timer.
 * `k/DEL` - delete the entry at point.
