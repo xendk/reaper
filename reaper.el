@@ -426,7 +426,7 @@ Stops any previously running timers."
                            reaper-project-tasks))
          (default (cdr (assoc default reaper-project-tasks)))
          (default-option (when default (concat "[" (cdr (assoc :code default)) "] " (cdr (assoc :name default)))))
-         (project (cdr (assoc (completing-read "Project: " projects nil t nil nil default-option) projects))))
+         (project (cdr (assoc (reaper--completing-read "Project: " projects default-option) projects))))
     project))
 
 (defun reaper-read-task (project &optional default)
@@ -435,8 +435,20 @@ Returns task id."
   (let*
       ((tasks (mapcar (lambda (task) (cons (cdr task) (car task))) (cdr (assoc :tasks project))))
        (default (when default (cdr (assoc default (cdr (assoc :tasks project))))))
-       (task-id (cdr (assoc (completing-read "Task: " tasks nil t nil nil default) tasks))))
+       (task-id (cdr (assoc (reaper--completing-read "Task: " tasks default) tasks))))
     task-id))
+
+(defun reaper--completing-read (prompt options default)
+  "Complete with PROMPT, with OPTIONS and having DEFAULT.
+Wraps `completing-read', or `ivy-read', in order to sort options
+in last used order when using ivy."
+  (if (eq completing-read-function 'ivy-completing-read)
+      (ivy-read
+       prompt options
+       :require-match t
+       :preselect default
+       :def default)
+    (completing-read prompt options nil t nil nil default)))
 
 (defun reaper--last-used (project task-id)
   "Save PROJECT and TASK-ID as last used."

@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 ### Added
 - `reaper-start-timer-and-quit-window`
 - Autoload `reaper`
+- Sort projects/tasks in last used order when using ivy
 
 ### Changed
 - Starting new timer now defaults to last used project and task
