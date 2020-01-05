@@ -30,6 +30,8 @@
 (require 'json)
 (require 'url)
 
+(declare-function ivy-read "ivy")
+
 (defgroup reaper nil
   "Reaper configuration."
   :prefix "reaper-"
