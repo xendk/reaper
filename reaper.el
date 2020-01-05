@@ -45,8 +45,7 @@
 (defcustom reaper-account-id ""
   "Account id for Harvest."
   :type 'string
-  :group 'reaper
-  )
+  :group 'reaper)
 
 (defconst reaper--list-format
   [("Project" 32 nil)
