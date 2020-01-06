@@ -35,9 +35,9 @@ Either using package.el to install from [MELPA](https://melpa.org/) or:
 ## Setup
 
 Create a personal access token at https://id.getharvest.com/developers
-and customize `reaper-api-key` to the given value. On the same page
-you should be able to see the account id you'll need for
-`reaper-account-id`.
+and use Emacs customization interface to set `reaper-api-key` to the
+given value. On the same page at Harvest you should be able to see the
+account id you'll need for `reaper-account-id`.
 
 ## Usage
 
