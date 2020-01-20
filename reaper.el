@@ -125,18 +125,6 @@
   `(with-current-buffer (reaper--buffer)
      ,@body))
 
-(defun reaper-kill-buffer-hook ()
-  "Cancel running timers when the buffer gets killed."
-  (when reaper-update-timer
-    (cancel-timer reaper-update-timer)
-    (setq reaper-update-timer nil)))
-
-(defun reaper--update-timer ()
-  "Update running timers in reaper buffer. Called by `run-at-time'."
-  (when (get-buffer reaper-buffer-name)
-    (reaper-with-buffer
-     (reaper-refresh-buffer))))
-
 ;;;###autoload
 (defun reaper ()
   "Open Reaper buffer."
@@ -145,22 +133,11 @@
   (reaper-with-buffer
    (select-window (display-buffer (current-buffer)))))
 
-(defun reaper--check-credentials ()
-  "Check if Harvest credetials are set, or trigger an user error."
-  (when (or (string= "" reaper-api-key) (string= "" reaper-account-id))
-    (user-error "Please customize reaper-api-key and reaper-account-id")))
-
-(defun reaper--buffer ()
-  "Return reaper buffer.
-Will create it if it doesn't exist yet."
-  (or
-   (get-buffer reaper-buffer-name)
-   (with-current-buffer (get-buffer-create reaper-buffer-name)
-     (reaper-mode)
-     ;; Start out on the last entry.
-     ;; (goto-char (point-max))
-     ;; (forward-line -1)
-     (current-buffer))))
+(defun reaper-kill-buffer-hook ()
+  "Cancel running timers when the buffer gets killed."
+  (when reaper-update-timer
+    (cancel-timer reaper-update-timer)
+    (setq reaper-update-timer nil)))
 
 (defun reaper-refresh ()
   "Refresh data from Harvest and update buffer."
@@ -237,50 +214,6 @@ Will create it if it doesn't exist yet."
   (tabulated-list-print t)
   (reaper--highlight-running))
 
-(defun reaper--get-user-id ()
-  "Return the Harvest user id of the current user."
-  (or
-   (reaper-alist-get '(id) (reaper-api "GET"
-                                       "users/me"
-                                       nil
-                                       "Fetched user information"))
-   (error "Could not fetch user id")))
-
-(defun reaper--list-entries ()
-  "Return list of entries for `tabulated-list-mode'."
-  (reaper-with-buffer
-   (unless (bound-and-true-p reaper-timeentries)
-     (reaper-refresh-entries))
-   (cl-loop for (id . entry) in reaper-timeentries
-            collect (list
-                     id
-                     (vector
-                      (cdr (assoc :project entry))
-                      (cdr (assoc :task entry))
-                      ;; For running timer, use time since timer_started_at.
-                      (reaper--hours-to-time (reaper--hours-accounting-for-running-timer entry))
-                      ;; Replace newlines as they mess with tabulated-list-mode.
-                      (replace-regexp-in-string "\n" "\\\\n" (cdr (assoc :notes entry))))))))
-
-(defun reaper--highlight-running ()
-  "Highlight the currently running timer."
-  (save-excursion
-    (while (not (eobp))
-      (tabulated-list-put-tag (if (eq (tabulated-list-get-id) reaper-running-timer) "->" ""))
-      (forward-line 1))))
-
-(defun reaper--hours-to-time (hours)
-  "Convert Harvest HOURS to a time string."
-  (format "%d:%02d" (truncate hours) (floor (* 60 (- hours (truncate hours))))))
-
-(defun reaper--time-to-hours (time)
-  "Convert TIME to hours.
-TIME is in HH:MM format. Returns a float."
-  (when (string-match (rx bos (optional (group-n 1 (optional digit)) ":") (group-n 2 (one-or-more digit)) eos) time)
-    (let ((hours (match-string-no-properties 1 time))
-          (minutes (string-to-number (match-string-no-properties 2 time))))
-      (+ (if hours (string-to-number hours) 0) (/ (float minutes) 60)))))
-
 (defun reaper-goto-date ()
   "Go to new date.
 
@@ -298,32 +231,6 @@ which case the month is the previous."
           (setq reaper-date date)
           (reaper-refresh))
       (user-error "Invalid date %s" date-string))))
-
-(defun reaper--parse-date-string (date-string)
-  "Pass DATE-STRING into canonical Y-m-d format.
-
-Dates are given in ISO like format, year-month-day, with - or .
-as a seperator.
-
-Year and month can be left out and are assumed to be current,
-unless that would put the date in the future, in which case it
-goes back a month or year."
-  (let* ((parts (reverse (split-string date-string "[-\.]")))
-         (day (string-to-number (nth 0 parts)))
-         (month (and (nth 1 parts) (string-to-number (nth 1 parts))))
-         (year (and (nth 2 parts) (string-to-number (nth 2 parts))))
-         (current-date (decode-time (current-time)))
-         (target-time (encode-time 59 59 23 day (or month (nth 4 current-date)) (or year (nth 5 current-date))))
-         (target-time-month-ago (encode-time 59 59 23 day (- (or month (nth 4 current-date)) 1) (or year (nth 5 current-date))))
-         (target-time-year-ago (encode-time 59 59 23 day (or month (nth 4 current-date)) (- (or year (nth 5 current-date)) 1)))
-         (time (cond
-                ;; On empty input day is still parsed as 0 (string-to-number "") returns 0.
-                ((< day 1) (current-time))
-                ((time-less-p target-time (current-time)) target-time)
-                ((and (not (nth 1 parts)) (time-less-p target-time-month-ago (current-time))) target-time-month-ago)
-                ((and (not (nth 2 parts)) (time-less-p target-time-year-ago (current-time))) target-time-year-ago)
-                (t nil))))
-    (and time (format-time-string "%Y-%m-%d" time))))
 
 (defun reaper-start-timer ()
   "Start the timer at point.
@@ -420,14 +327,6 @@ Stops any previously running timers."
     (reaper-api "PATCH" (format "time_entries/%s" entry-id) harvest-payload "Updated entry")
     (reaper-refresh)))
 
-(defun reaper--hours-accounting-for-running-timer (entry)
-  "Return hours from ENTRY, adding in time since request if the timer is running."
-  (+  (cdr (assoc :hours entry))
-      (if (cdr (assoc :is_running entry))
-          (+ (/ (/ (time-to-seconds (time-subtract (current-time)
-                                                   reaper-fetch-time)) 60) 60))
-        0)))
-
 (defun reaper-read-project (&optional default)
   "Read a project from the user. Default to DEFAULT."
   (let* ((projects (mapcar (lambda (project)
@@ -446,27 +345,6 @@ Returns task id."
        (default (when default (cdr (assoc default (cdr (assoc :tasks project))))))
        (task-id (cdr (assoc (reaper--completing-read "Task: " tasks default) tasks))))
     task-id))
-
-(defun reaper--completing-read (prompt options default)
-  "Complete with PROMPT, with OPTIONS and having DEFAULT.
-Wraps `completing-read', or `ivy-read', in order to sort options
-in last used order when using ivy."
-  (if (eq completing-read-function 'ivy-completing-read)
-      (ivy-read
-       prompt options
-       :require-match t
-       :preselect default
-       :def default)
-    (completing-read prompt options nil t nil nil default)))
-
-(defun reaper--last-used (project task-id)
-  "Save PROJECT and TASK-ID as last used."
-  (setq reaper-project-tasks (delq project reaper-project-tasks))
-  (let* ((tasks (cdr (assoc :tasks project)))
-         (task (assoc task-id tasks)))
-    (cons task (delq task tasks))
-    (setf (cdr (assoc :tasks project)) (cons task (delq task tasks))))
-  (push project reaper-project-tasks))
 
 (defun reaper-api (method path payload completion-message)
   "Make an METHOD call to PATH with PAYLOAD and COMPLETION-MESSAGE."
@@ -514,6 +392,128 @@ URL, VISIT, BEG, END and REPLACE is the same as for
       (reaper-alist-get (cdr symbols)
                         (assoc (car symbols) alist))
     (cdr alist)))
+
+(defun reaper--update-timer ()
+  "Update running timers in reaper buffer. Called by `run-at-time'."
+  (when (get-buffer reaper-buffer-name)
+    (reaper-with-buffer
+     (reaper-refresh-buffer))))
+
+(defun reaper--check-credentials ()
+  "Check if Harvest credetials are set, or trigger an user error."
+  (when (or (string= "" reaper-api-key) (string= "" reaper-account-id))
+    (user-error "Please customize reaper-api-key and reaper-account-id")))
+
+(defun reaper--buffer ()
+  "Return reaper buffer.
+Will create it if it doesn't exist yet."
+  (or
+   (get-buffer reaper-buffer-name)
+   (with-current-buffer (get-buffer-create reaper-buffer-name)
+     (reaper-mode)
+     ;; Start out on the last entry.
+     ;; (goto-char (point-max))
+     ;; (forward-line -1)
+     (current-buffer))))
+
+(defun reaper--get-user-id ()
+  "Return the Harvest user id of the current user."
+  (or
+   (reaper-alist-get '(id) (reaper-api "GET"
+                                       "users/me"
+                                       nil
+                                       "Fetched user information"))
+   (error "Could not fetch user id")))
+
+(defun reaper--list-entries ()
+  "Return list of entries for `tabulated-list-mode'."
+  (reaper-with-buffer
+   (unless (bound-and-true-p reaper-timeentries)
+     (reaper-refresh-entries))
+   (cl-loop for (id . entry) in reaper-timeentries
+            collect (list
+                     id
+                     (vector
+                      (cdr (assoc :project entry))
+                      (cdr (assoc :task entry))
+                      ;; For running timer, use time since timer_started_at.
+                      (reaper--hours-to-time (reaper--hours-accounting-for-running-timer entry))
+                      ;; Replace newlines as they mess with tabulated-list-mode.
+                      (replace-regexp-in-string "\n" "\\\\n" (cdr (assoc :notes entry))))))))
+
+(defun reaper--highlight-running ()
+  "Highlight the currently running timer."
+  (save-excursion
+    (while (not (eobp))
+      (tabulated-list-put-tag (if (eq (tabulated-list-get-id) reaper-running-timer) "->" ""))
+      (forward-line 1))))
+
+(defun reaper--hours-to-time (hours)
+  "Convert Harvest HOURS to a time string."
+  (format "%d:%02d" (truncate hours) (floor (* 60 (- hours (truncate hours))))))
+
+(defun reaper--time-to-hours (time)
+  "Convert TIME to hours.
+TIME is in HH:MM format. Returns a float."
+  (when (string-match (rx bos (optional (group-n 1 (optional digit)) ":") (group-n 2 (one-or-more digit)) eos) time)
+    (let ((hours (match-string-no-properties 1 time))
+          (minutes (string-to-number (match-string-no-properties 2 time))))
+      (+ (if hours (string-to-number hours) 0) (/ (float minutes) 60)))))
+
+(defun reaper--parse-date-string (date-string)
+  "Pass DATE-STRING into canonical Y-m-d format.
+
+Dates are given in ISO like format, year-month-day, with - or .
+as a seperator.
+
+Year and month can be left out and are assumed to be current,
+unless that would put the date in the future, in which case it
+goes back a month or year."
+  (let* ((parts (reverse (split-string date-string "[-\.]")))
+         (day (string-to-number (nth 0 parts)))
+         (month (and (nth 1 parts) (string-to-number (nth 1 parts))))
+         (year (and (nth 2 parts) (string-to-number (nth 2 parts))))
+         (current-date (decode-time (current-time)))
+         (target-time (encode-time 59 59 23 day (or month (nth 4 current-date)) (or year (nth 5 current-date))))
+         (target-time-month-ago (encode-time 59 59 23 day (- (or month (nth 4 current-date)) 1) (or year (nth 5 current-date))))
+         (target-time-year-ago (encode-time 59 59 23 day (or month (nth 4 current-date)) (- (or year (nth 5 current-date)) 1)))
+         (time (cond
+                ;; On empty input day is still parsed as 0 (string-to-number "") returns 0.
+                ((< day 1) (current-time))
+                ((time-less-p target-time (current-time)) target-time)
+                ((and (not (nth 1 parts)) (time-less-p target-time-month-ago (current-time))) target-time-month-ago)
+                ((and (not (nth 2 parts)) (time-less-p target-time-year-ago (current-time))) target-time-year-ago)
+                (t nil))))
+    (and time (format-time-string "%Y-%m-%d" time))))
+
+(defun reaper--hours-accounting-for-running-timer (entry)
+  "Return hours from ENTRY, adding in time since request if the timer is running."
+  (+  (cdr (assoc :hours entry))
+      (if (cdr (assoc :is_running entry))
+          (+ (/ (/ (time-to-seconds (time-subtract (current-time)
+                                                   reaper-fetch-time)) 60) 60))
+        0)))
+
+(defun reaper--completing-read (prompt options default)
+  "Complete with PROMPT, with OPTIONS and having DEFAULT.
+Wraps `completing-read', or `ivy-read', in order to sort options
+in last used order when using ivy."
+  (if (eq completing-read-function 'ivy-completing-read)
+      (ivy-read
+       prompt options
+       :require-match t
+       :preselect default
+       :def default)
+    (completing-read prompt options nil t nil nil default)))
+
+(defun reaper--last-used (project task-id)
+  "Save PROJECT and TASK-ID as last used."
+  (setq reaper-project-tasks (delq project reaper-project-tasks))
+  (let* ((tasks (cdr (assoc :tasks project)))
+         (task (assoc task-id tasks)))
+    (cons task (delq task tasks))
+    (setf (cdr (assoc :tasks project)) (cons task (delq task tasks))))
+  (push project reaper-project-tasks))
 
 (provide 'reaper)
 ;;; reaper.el ends here
