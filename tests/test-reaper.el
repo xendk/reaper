@@ -96,5 +96,24 @@
             nil))
   )
 
+(describe "reaper--get-user-id"
+  (before-each
+    (spy-on 'reaper-api
+            :and-return-value '((id . 123)
+                                (first_name . "First")
+                                (last_name . "Name")
+                                (email . "user@example.com")
+                                (telephone . ""))))
+
+  (it "returns the proper id"
+    (expect (reaper--get-user-id) :to-be 123))
+
+  (describe "on invalid respone"
+    (before-each
+      (spy-on 'reaper-api
+              :and-return-value '((noid . 123))))
+    (it "will throw an error"
+      (expect (reaper--get-user-id) :to-throw))))
+
 (provide 'test-reaper)
 ;;; test-reaper.el ends here

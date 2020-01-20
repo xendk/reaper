@@ -177,7 +177,7 @@ Will create it if it doesn't exist yet."
    (let* ((response-entries
            (reaper-alist-get '(time_entries)
                              (reaper-api "GET"
-                                         (format "time_entries?from=%s&to=%s"  reaper-date reaper-date)
+                                         (format "time_entries?from=%s&to=%s&user=%s"  reaper-date reaper-date (reaper--get-user-id))
                                          nil
                                          "Refreshed cache of daily entries")))
           (request-time (current-time)))
@@ -200,8 +200,7 @@ Will create it if it doesn't exist yet."
                                     (if notes (decode-coding-string notes 'utf-8) ""))))))
             ;; API returns newest entry first. Simply reverse the list.
             (reverse response-entries)))
-     (setq reaper-fetch-time request-time)
-     )))
+     (setq reaper-fetch-time request-time))))
 
 (defun reaper-refresh-project-tasks ()
   "Fetch projects and tasks from Harvest."
@@ -237,6 +236,15 @@ Will create it if it doesn't exist yet."
   (tabulated-list-init-header)
   (tabulated-list-print t)
   (reaper--highlight-running))
+
+(defun reaper--get-user-id ()
+  "Return the Harvest user id of the current user."
+  (or
+   (reaper-alist-get '(id) (reaper-api "GET"
+                                       "users/me"
+                                       nil
+                                       "Fetched user information"))
+   (error "Could not fetch user id")))
 
 (defun reaper--list-entries ()
   "Return list of entries for `tabulated-list-mode'."
