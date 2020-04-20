@@ -154,7 +154,7 @@
    (let* ((response-entries
            (reaper-alist-get '(time_entries)
                              (reaper-api "GET"
-                                         (format "time_entries?from=%s&to=%s&user=%s"  reaper-date reaper-date (reaper--get-user-id))
+                                         (format "time_entries?from=%s&to=%s&user_id=%s"  reaper-date reaper-date (reaper--get-user-id))
                                          nil
                                          "Refreshed cache of daily entries")))
           (request-time (current-time)))
