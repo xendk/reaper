@@ -6,6 +6,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 ## Unreleased
 ### Added
 - Display total daily time
+- Add `f`/`b` to go back/forwards a day
 
 ## 1.1.0 - 2019-09-21
 ### Added

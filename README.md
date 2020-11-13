@@ -48,7 +48,9 @@ Bindings in the buffer:
 * `q` - bury buffer. It can be recalled with the `reaper` command.
 * `g` - refresh the list.
 * `d` - change date. Supply a date in Y-M-D or Y.M.D format. Year
-  or year and month may be left out.
+  or year and month may be left out. +D or -D to go forward/back days
+  from currently displayed.
+* `f/b` - Go to next/previous day.
 * `SPC` - restart the timer at point.
 * `RET` - restart the timer at point and bury buffer.
 * `c` - start a new timer.

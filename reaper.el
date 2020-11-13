@@ -88,6 +88,8 @@
     (define-key map (kbd "r") #'reaper-refresh-buffer)
     (define-key map (kbd "g") #'reaper-refresh)
     (define-key map (kbd "d") #'reaper-goto-date)
+    (define-key map (kbd "f") #'reaper-goto-date+1)
+    (define-key map (kbd "b") #'reaper-goto-date-1)
     (define-key map (kbd "SPC") #'reaper-start-timer)
     (define-key map (kbd "RET") #'reaper-start-timer-and-quit-window)
     (define-key map (kbd "c") #'reaper-start-new-timer)
@@ -220,6 +222,25 @@
   (tabulated-list-print t)
   (reaper--highlight-running))
 
+(defun reaper--goto-date (date-string)
+  "Go to a date.
+
+DATE-STRING can be given in ISO like format, year-month-day, with
+- or . as a seperator.
+
+Year and month can be left out and are assumed to be current,
+unless the day number is equal or greater than todays date, in
+which case the month is the previous.
+
+Alternatively +<days>/-<days> can be used to move X days
+forward/back from reaper-date."
+  (let* ((date (reaper--parse-date-string date-string)))
+    (if date
+        (progn
+          (setq reaper-date date)
+          (reaper-refresh))
+      (user-error "Invalid date %s" date-string))))
+
 (defun reaper-goto-date ()
   "Go to new date.
 
@@ -228,15 +249,22 @@ as a seperator.
 
 Year and month can be left out and are assumed to be current,
 unless the day number is equal or greater than todays date, in
-which case the month is the previous."
+which case the month is the previous.
+
+Alternatively +<days>/-<days> can be used to move X days
+forward/back from reaper-date."
   (interactive)
-  (let* ((date-string (read-string "Goto date: "))
-         (date (reaper--parse-date-string date-string)))
-    (if date
-        (progn
-          (setq reaper-date date)
-          (reaper-refresh))
-      (user-error "Invalid date %s" date-string))))
+  (reaper--goto-date (date-string (read-string "Goto date: "))))
+
+(defun reaper-goto-date+1 ()
+  "Go a day forward."
+  (interactive)
+  (reaper--goto-date "+1"))
+
+(defun reaper-goto-date-1 ()
+  "Go a day back."
+  (interactive)
+  (reaper--goto-date "-1"))
 
 (defun reaper-start-timer ()
   "Start the timer at point.
