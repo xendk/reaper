@@ -59,6 +59,12 @@
 (defvar reaper-buffer-name " *Reaper*"
   "Name for Reaper buffer.")
 
+(defvar reaper-total-hours 0
+  "Total hours tracked on the currently selected day in the reaper buffer.")
+
+(defvar reaper-running-hours 0
+  "Hours tracked on the currently running timer.")
+
 (defvar-local reaper-timeentries nil
   "Cache of Harvest time entries.")
 
@@ -430,14 +436,17 @@ Will create it if it doesn't exist yet."
   (reaper-with-buffer
    (unless (bound-and-true-p reaper-timeentries)
      (reaper-refresh-entries))
+   (setq reaper-total-hours 0)
    (cl-loop for (id . entry) in reaper-timeentries
             collect (list
                      id
                      (vector
                       (cdr (assoc :project entry))
                       (cdr (assoc :task entry))
+                      (let ((hours (reaper--hours-accounting-for-running-timer entry)))
+                        (setq reaper-total-hours (+ hours reaper-total-hours))
+                        (reaper--hours-to-time hours))
                       ;; For running timer, use time since timer_started_at.
-                      (reaper--hours-to-time (reaper--hours-accounting-for-running-timer entry))
                       ;; Replace newlines as they mess with tabulated-list-mode.
                       (replace-regexp-in-string "\n" "\\\\n" (cdr (assoc :notes entry))))))))
 
