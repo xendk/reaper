@@ -437,24 +437,30 @@ Will create it if it doesn't exist yet."
    (unless (bound-and-true-p reaper-timeentries)
      (reaper-refresh-entries))
    (setq reaper-total-hours 0)
-   (cl-loop for (id . entry) in reaper-timeentries
-            collect (list
-                     id
-                     (vector
-                      (cdr (assoc :project entry))
-                      (cdr (assoc :task entry))
-                      (let ((hours (reaper--hours-accounting-for-running-timer entry)))
-                        (setq reaper-total-hours (+ hours reaper-total-hours))
-                        (reaper--hours-to-time hours))
-                      ;; For running timer, use time since timer_started_at.
-                      ;; Replace newlines as they mess with tabulated-list-mode.
-                      (replace-regexp-in-string "\n" "\\\\n" (cdr (assoc :notes entry))))))))
+   (let
+       ((entries (cl-loop for (id . entry) in reaper-timeentries
+                          collect (list
+                                   id
+                                   (vector
+                                    (cdr (assoc :project entry))
+                                    (cdr (assoc :task entry))
+                                    (let ((hours (reaper--hours-accounting-for-running-timer entry)))
+                                      (setq reaper-total-hours (+ hours reaper-total-hours))
+                                      (reaper--hours-to-time hours))
+                                    ;; For running timer, use time since timer_started_at.
+                                    ;; Replace newlines as they mess with tabulated-list-mode.
+                                    (replace-regexp-in-string "\n" "\\\\n" (cdr (assoc :notes entry))))))))
+     (append
+      entries
+      (list
+       (list nil (vconcat [] (mapcar (lambda (x) (make-string (elt x 1) ?-)) reaper--list-format)))
+       (list nil (vector "Total" "" (reaper--hours-to-time reaper-total-hours) "")))))))
 
 (defun reaper--highlight-running ()
   "Highlight the currently running timer."
   (save-excursion
     (while (not (eobp))
-      (tabulated-list-put-tag (if (eq (tabulated-list-get-id) reaper-running-timer) "->" ""))
+      (tabulated-list-put-tag (if (and reaper-running-timer (eq (tabulated-list-get-id) reaper-running-timer)) "->" ""))
       (forward-line 1))))
 
 (defun reaper--hours-to-time (hours)
