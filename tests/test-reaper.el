@@ -29,7 +29,8 @@
 (describe "user supplied date parsing"
   (before-each
     ;; Fix tests in time.
-    (spy-on 'current-time :and-return-value (date-to-time "2018-07-11T12:33:05Z")))
+    (spy-on 'current-time :and-return-value (date-to-time "2018-07-11T12:33:05Z"))
+    (setq reaper-date "2020-11-14"))
   (it "returns current date for an empty input"
     (expect (reaper--parse-date-string "")
             :to-equal
@@ -58,7 +59,23 @@
   (it "goes a month back if current day is less than supplied"
     (expect (reaper--parse-date-string "20")
             :to-equal
-            "2018-06-20")))
+            "2018-06-20"))
+  (it "goes back that many days from reaper-date if given a negative number"
+    (expect (reaper--parse-date-string "-3")
+            :to-equal
+            "2020-11-11"))
+  (it "goes forward that many days from reaper-date if given a number prefixed with plus"
+    (expect (reaper--parse-date-string "+3")
+            :to-equal
+            "2020-11-17"))
+  (it "-<days> handles month rollover"
+    (expect (reaper--parse-date-string "-30")
+            :to-equal
+            "2020-10-15"))
+  (it "+<days> handles month rollover"
+    (expect (reaper--parse-date-string "+30")
+            :to-equal
+            "2020-12-14")))
 
 (describe "time to hours parsing"
   (it"parses 1:00"

@@ -483,23 +483,47 @@ as a seperator.
 
 Year and month can be left out and are assumed to be current,
 unless that would put the date in the future, in which case it
-goes back a month or year."
-  (let* ((parts (reverse (split-string date-string "[-\.]")))
-         (day (string-to-number (nth 0 parts)))
-         (month (and (nth 1 parts) (string-to-number (nth 1 parts))))
-         (year (and (nth 2 parts) (string-to-number (nth 2 parts))))
-         (current-date (decode-time (current-time)))
-         (target-time (encode-time 59 59 23 day (or month (nth 4 current-date)) (or year (nth 5 current-date))))
-         (target-time-month-ago (encode-time 59 59 23 day (- (or month (nth 4 current-date)) 1) (or year (nth 5 current-date))))
-         (target-time-year-ago (encode-time 59 59 23 day (or month (nth 4 current-date)) (- (or year (nth 5 current-date)) 1)))
-         (time (cond
-                ;; On empty input day is still parsed as 0 (string-to-number "") returns 0.
-                ((< day 1) (current-time))
-                ((time-less-p target-time (current-time)) target-time)
-                ((and (not (nth 1 parts)) (time-less-p target-time-month-ago (current-time))) target-time-month-ago)
-                ((and (not (nth 2 parts)) (time-less-p target-time-year-ago (current-time))) target-time-year-ago)
-                (t nil))))
-    (and time (format-time-string "%Y-%m-%d" time))))
+goes back a month or year.
+
+If date is a number prefixed with -/+, it goes back/forward that
+many days from reaper-date."
+  (let ((current-date (decode-time (current-time)))
+        (current-reaper-date (split-string reaper-date "[-]")))
+    (if (string-match "^\\([+-][0-9]+\\)$" date-string)
+        (let* ((days-offset (string-to-number (match-string 1 date-string))))
+          (format-time-string "%Y-%m-%d" (encode-time 59 59 23
+                                                      (+ (string-to-number (nth 2 current-reaper-date)) days-offset)
+                                                      (string-to-number (nth 1 current-reaper-date))
+                                                      (string-to-number (nth 0 current-reaper-date)))))
+      (let* ((parts (reverse (split-string date-string "[-\.]")))
+             (day (string-to-number (nth 0 parts)))
+             (month (and (nth 1 parts) (string-to-number (nth 1 parts))))
+             (year (and (nth 2 parts) (string-to-number (nth 2 parts))))
+             (target-time (encode-time 59 59 23
+                                       day
+                                       (or month (nth 4 current-date))
+                                       (or year (nth 5 current-date))))
+             (target-time-month-ago (encode-time 59 59 23
+                                                 day
+                                                 (- (or month (nth 4 current-date)) 1)
+                                                 (or year (nth 5 current-date))))
+             (target-time-year-ago (encode-time 59 59 23
+                                                day
+                                                (or month (nth 4 current-date))
+                                                (- (or year (nth 5 current-date)) 1)))
+             (time (cond
+                    ;; On empty input day is still parsed as 0
+                    ;; (string-to-number "") returns 0.
+                    ((< day 1) (current-time))
+                    ((time-less-p target-time (current-time)) target-time)
+                    ((and (not (nth 1 parts))
+                          (time-less-p target-time-month-ago (current-time)))
+                     target-time-month-ago)
+                    ((and (not (nth 2 parts))
+                          (time-less-p target-time-year-ago (current-time)))
+                     target-time-year-ago)
+                    (t nil))))
+        (and time (format-time-string "%Y-%m-%d" time))))))
 
 (defun reaper--hours-accounting-for-running-timer (entry)
   "Return hours from ENTRY, adding in time since request if the timer is running."
