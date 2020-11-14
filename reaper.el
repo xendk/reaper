@@ -254,7 +254,7 @@ which case the month is the previous.
 Alternatively +<days>/-<days> can be used to move X days
 forward/back from reaper-date."
   (interactive)
-  (reaper--goto-date (date-string (read-string "Goto date: "))))
+  (reaper--goto-date (read-string "Goto date: ")))
 
 (defun reaper-goto-date+1 ()
   "Go a day forward."
