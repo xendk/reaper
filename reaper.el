@@ -517,8 +517,8 @@ If date is a number prefixed with -/+, it goes back/forward that
 many days from reaper-date."
   (let ((current-date (decode-time (current-time)))
         (current-reaper-date (split-string reaper-date "[-]")))
-    (if (string-match "^\\([+-][0-9]+\\)$" date-string)
-        (let* ((days-offset (string-to-number (match-string 1 date-string))))
+    (if (string-match (rx bos (group-n 1 (any ?+ ?-) (one-or-more digit)) eos) date-string)
+        (let* ((days-offset (string-to-number (match-string-no-properties 1 date-string))))
           (format-time-string "%Y-%m-%d" (encode-time 59 59 23
                                                       (+ (string-to-number (nth 2 current-reaper-date)) days-offset)
                                                       (string-to-number (nth 1 current-reaper-date))
