@@ -497,7 +497,7 @@ Will create it if it doesn't exist yet."
 
 (defun reaper--time-to-hours (time)
   "Convert TIME to hours.
-TIME is in HH:MM format. Returns a float."
+TIME is in HH:MM or MM format. Returns a float."
   (when (string-match (rx bos (optional (group-n 1 (optional digit)) ":") (group-n 2 (one-or-more digit)) eos) time)
     (let ((hours (match-string-no-properties 1 time))
           (minutes (string-to-number (match-string-no-properties 2 time))))
