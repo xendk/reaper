@@ -95,7 +95,10 @@
     (define-key map (kbd "c") #'reaper-start-new-timer)
     (define-key map (kbd "s") #'reaper-stop-timer)
     (define-key map (kbd "k") #'reaper-delete-entry)
-    (define-key map (kbd "e") #'reaper-edit-entry)
+    (define-key map (kbd "e e") #'reaper-edit-entry)
+    (define-key map (kbd "e p") #'reaper-edit-entry-project)
+    (define-key map (kbd "e t") #'reaper-edit-entry-task)
+    (define-key map (kbd "e d") #'reaper-edit-entry-description)
     (define-key map (kbd "t") #'reaper-edit-entry-time)
     (define-key map (kbd "DEL") #'reaper-delete-entry)
     (define-key map (kbd "Q") #'reaper-kill-buffer)
@@ -344,6 +347,56 @@ Stops any previously running timers."
              (harvest-payload (make-hash-table :test 'equal)))
         (puthash "project_id" (cdr (assoc :id project)) harvest-payload)
         (puthash "task_id" task-id harvest-payload)
+        (puthash "notes" notes harvest-payload)
+        (reaper-api "PATCH" (format "time_entries/%s" entry-id) harvest-payload "Updated entry")
+        (reaper-refresh)))))
+
+(defun reaper-edit-entry-project ()
+  "Edit project of entry at point."
+  (interactive)
+  (unless (bound-and-true-p reaper-project-tasks)
+    (reaper-refresh-project-tasks))
+  (let* ((entry-id (tabulated-list-get-id))
+         (entry (assoc entry-id reaper-timeentries)))
+    (when entry
+      ;; When changing project, the possible tasks change too. So if
+      ;; the new project doesn't have the current task, we need to do
+      ;; something about it. For starters, we always ask for a task.
+      ;; Later we can check if the task is also in the new project and
+      ;; only ask if it isn't.
+      (let* ((project (reaper-read-project (cdr (assoc :project_id entry))))
+             (task-id (reaper-read-task project (cdr (assoc :task_id entry))))
+             (harvest-payload (make-hash-table :test 'equal)))
+        (puthash "project_id" (cdr (assoc :id project)) harvest-payload)
+        (puthash "task_id" task-id harvest-payload)
+        (reaper-api "PATCH" (format "time_entries/%s" entry-id) harvest-payload "Updated entry")
+        (reaper-refresh)))))
+
+(defun reaper-edit-entry-task ()
+  "Edit task of entry at point."
+  (interactive)
+  (unless (bound-and-true-p reaper-project-tasks)
+    (reaper-refresh-project-tasks))
+  (let* ((entry-id (tabulated-list-get-id))
+         (entry (assoc entry-id reaper-timeentries)))
+    (when entry
+      (let* ((project (cdr (assoc (cdr (assoc :project_id entry)) reaper-project-tasks)))
+             (task-id (reaper-read-task project (cdr (assoc :task_id entry))))
+             (harvest-payload (make-hash-table :test 'equal)))
+        (puthash "task_id" task-id harvest-payload)
+        (reaper-api "PATCH" (format "time_entries/%s" entry-id) harvest-payload "Updated entry")
+        (reaper-refresh)))))
+
+(defun reaper-edit-entry-description ()
+  "Edit description of entry at point."
+  (interactive)
+  (unless (bound-and-true-p reaper-project-tasks)
+    (reaper-refresh-project-tasks))
+  (let* ((entry-id (tabulated-list-get-id))
+         (entry (assoc entry-id reaper-timeentries)))
+    (when entry
+      (let* ((notes (read-string "Description: " (cdr (assoc :notes entry))))
+             (harvest-payload (make-hash-table :test 'equal)))
         (puthash "notes" notes harvest-payload)
         (reaper-api "PATCH" (format "time_entries/%s" entry-id) harvest-payload "Updated entry")
         (reaper-refresh)))))
