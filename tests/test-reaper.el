@@ -110,8 +110,21 @@
   (it "rejects a"
     (expect (reaper--time-to-hours "a")
             :to-equal
-            nil))
-  )
+            nil)))
+
+(describe "reaper--time-to-hours-calculation"
+  (it "handles addition: 1:00+30"
+    (expect (reaper--time-to-hours-calculation "1:00+30")
+            :to-equal
+            1.5))
+  (it "handles subtraction: 2:00-1:15"
+    (expect (reaper--time-to-hours-calculation "2:00-1:15")
+            :to-equal
+            0.75))
+  (it "handles multiple operations: 2:00-1:15+1:00-30"
+    (expect (reaper--time-to-hours-calculation "2:00-1:15+1:00-30")
+            :to-equal
+            1.25)))
 
 (describe "reaper--get-user-id"
   (before-each

@@ -30,7 +30,9 @@
 (require 'json)
 (require 'url)
 
+;; Declare what we're using from elsewhere.
 (declare-function ivy-read "ivy")
+(defvar calc-eval-error)
 
 (defgroup reaper nil
   "Reaper configuration."
@@ -54,6 +56,9 @@
    ("Note" 40 nil)
    ]
   "Reaper list format.")
+
+(defconst reaper--time-regexp
+  (rx (optional (group-n 1 (optional digit)) ":") (group-n 2 (one-or-more digit))))
 
 ;;; Code:
 (defvar reaper-buffer-name " *Reaper*"
@@ -410,7 +415,7 @@ Stops any previously running timers."
          (entry (assoc entry-id reaper-timeentries))
          ;; If the timer is running add the time since the data was fetched.
          (time (reaper--hours-to-time (reaper--hours-accounting-for-running-timer entry)))
-         (new-time (reaper--time-to-hours (read-string "New time: " time)))
+         (new-time (reaper--time-to-hours-calculation (read-string "New time: " time)))
          (harvest-payload (make-hash-table :test 'equal)))
     (puthash "hours" new-time harvest-payload)
     (reaper-api "PATCH" (format "time_entries/%s" entry-id) harvest-payload "Updated entry")
@@ -550,10 +555,27 @@ Will create it if it doesn't exist yet."
   "Convert Harvest HOURS to a time string."
   (format "%d:%02d" (truncate hours) (floor (* 60 (- hours (truncate hours))))))
 
+(defun reaper--time-to-hours-calculation (string)
+  "Convert a time calculation STRING to hours.
+A calculation is a number of time strings (as parsed by
+`reaper--time-to-hours') separated by + or -."
+  ;; Error out if string contains other characters than numbers,
+  ;; colon, plus and minus. Calc might handle it alright, but due to
+  ;; the time parsing even simple things like 2*10 produce unexpected
+  ;; results, so let's disallow it.
+  (unless (string-match (rx bos (1+ (any ?: ?+ ?- num)) eos) string)
+    (user-error "Invalid hours calculation string"))
+  ;; Let calc do the heavy lifting.
+  (let ((calc-eval-error t))
+    (string-to-number (calc-eval (replace-regexp-in-string
+                                  reaper--time-regexp
+                                  (lambda (num) (number-to-string (reaper--time-to-hours num)))
+                                  string)))))
+
 (defun reaper--time-to-hours (time)
   "Convert TIME to hours.
 TIME is in HH:MM or MM format. Returns a float."
-  (when (string-match (rx bos (optional (group-n 1 (optional digit)) ":") (group-n 2 (one-or-more digit)) eos) time)
+  (when (string-match (rx bos (regexp reaper--time-regexp) eos) time)
     (let ((hours (match-string-no-properties 1 time))
           (minutes (string-to-number (match-string-no-properties 2 time))))
       (+ (if hours (string-to-number hours) 0) (/ (float minutes) 60)))))

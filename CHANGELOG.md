@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 - `e d` to edit entry description
 - `e t` to edit entry task
 - `e p` to edit entry project
+- Simple calculations in time entry
 
 ### Changed
 - `reaper-edit-entry` moved from `e` to `e e`

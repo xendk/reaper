@@ -58,6 +58,7 @@ Bindings in the buffer:
 * `k/DEL` - delete the entry at point.
 * `e` - edit project/task/note of entry at point.
 * `t` - edit time for entry at point (even works for running timers).
+  Supports `+` and `-` calculations.
 * `Q` - to kill reaper buffer. Stops timers and clears all local data.
 
 # What's in the name
