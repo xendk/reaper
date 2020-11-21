@@ -359,13 +359,15 @@ Stops any previously running timers."
   (let* ((entry-id (tabulated-list-get-id))
          (entry (assoc entry-id reaper-timeentries)))
     (when entry
-      ;; When changing project, the possible tasks change too. So if
-      ;; the new project doesn't have the current task, we need to do
-      ;; something about it. For starters, we always ask for a task.
-      ;; Later we can check if the task is also in the new project and
-      ;; only ask if it isn't.
       (let* ((project (reaper-read-project (cdr (assoc :project_id entry))))
-             (task-id (reaper-read-task project (cdr (assoc :task_id entry))))
+             ;; When changing project, the possible tasks change too.
+             ;; So if the new project doesn't have the current task,
+             ;; we need to ask for it.
+             (current-task-id (cdr (assoc :task_id entry)))
+             (task-id
+              (if (assoc current-task-id (cdr (assoc :tasks project)))
+                  current-task-id
+                (reaper-read-task project (cdr (assoc :task_id entry)))))
              (harvest-payload (make-hash-table :test 'equal)))
         (puthash "project_id" (cdr (assoc :id project)) harvest-payload)
         (puthash "task_id" task-id harvest-payload)
