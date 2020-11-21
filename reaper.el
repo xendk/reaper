@@ -628,6 +628,8 @@ in last used order when using ivy."
 
 (defun reaper--last-used (project task-id)
   "Save PROJECT and TASK-ID as last used."
+  ;; Simply move the last used project to the top of the list, and the
+  ;; last used task to the top of the list of tasks on the project.
   (setq reaper-project-tasks (delq project reaper-project-tasks))
   (let* ((tasks (cdr (assoc :tasks project)))
          (task (assoc task-id tasks)))
