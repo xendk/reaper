@@ -26,7 +26,7 @@
 (require 'buttercup)
 (require 'reaper)
 
-(describe "user supplied date parsing"
+(describe "reaper--parse-date-string"
   (before-each
     ;; Fix tests in time.
     (spy-on 'current-time :and-return-value (date-to-time "2018-07-11T12:33:05Z"))
@@ -77,8 +77,8 @@
             :to-equal
             "2020-12-14")))
 
-(describe "time to hours parsing"
-  (it"parses 1:00"
+(describe "reaper--time-to-hours"
+  (it "parses 1:00"
     (expect (reaper--time-to-hours "1:00")
             :to-equal
             1.0)
