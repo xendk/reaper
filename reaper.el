@@ -149,6 +149,15 @@
   (reaper-with-buffer
    (select-window (display-buffer (current-buffer)))))
 
+(defun reaper-get-running-timer-note ()
+  "Return the note (description) of the current running timer.
+
+If no timer is running, return nil."
+  (reaper-with-buffer
+   (when reaper-running-timer
+     (let ((entry (assoc reaper-running-timer reaper-timeentries)))
+       (cdr (assoc :notes entry))))))
+
 (defun reaper-kill-buffer-hook ()
   "Cancel running timers when the buffer gets killed."
   (when reaper-update-timer
