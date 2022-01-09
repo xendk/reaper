@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 - `e p` to edit entry project
 - Simple calculations in time entry
 - `reaper-get-running-timer-note` for getting note of running timer.
+- `!` to clear project/task cache
 
 ### Changed
 - `reaper-edit-entry` moved from `e` to `e e`

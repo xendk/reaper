@@ -107,6 +107,7 @@
     (define-key map (kbd "t") #'reaper-edit-entry-time)
     (define-key map (kbd "DEL") #'reaper-delete-entry)
     (define-key map (kbd "Q") #'reaper-kill-buffer)
+    (define-key map (kbd "!") #'reaper-clear-project-tasks)
     map)
   "Keymap for Harvest mode.")
 
@@ -204,8 +205,19 @@ If no timer is running, return nil."
             (reverse response-entries)))
      (setq reaper-fetch-time request-time))))
 
+(defun reaper-clear-project-tasks ()
+  "Clear cached projects and tasks."
+  (interactive)
+  (setq reaper-project-tasks nil))
+
+(defun reaper-ensure-project-tasks ()
+  "Ensure that we have project and tasks fetched."
+  (unless (bound-and-true-p reaper-project-tasks)
+    (reaper-refresh-project-tasks)))
+
 (defun reaper-refresh-project-tasks ()
   "Fetch projects and tasks from Harvest."
+  (interactive)
   (reaper-with-buffer
    (unless reaper-project-tasks
      (message "Refreshing projects and tasks from Harvest, please hold.")
@@ -307,8 +319,7 @@ Stops any previously running timers."
 (defun reaper-start-new-timer ()
   "Create a new running timer."
   (interactive)
-  (unless (bound-and-true-p reaper-project-tasks)
-    (reaper-refresh-project-tasks))
+  (reaper-ensure-project-tasks)
   (let* (
          (project (reaper-read-project (cdr (assoc :id (cdr (car reaper-project-tasks))))))
          (task-id (reaper-read-task project (car (car (cdr (assoc :tasks project))))))
@@ -350,8 +361,7 @@ Stops any previously running timers."
 (defun reaper-edit-entry ()
   "Edit entry at point."
   (interactive)
-  (unless (bound-and-true-p reaper-project-tasks)
-    (reaper-refresh-project-tasks))
+  (reaper-ensure-project-tasks)
   (let* ((entry-id (tabulated-list-get-id))
          (entry (assoc entry-id reaper-timeentries)))
     (when entry
@@ -368,8 +378,7 @@ Stops any previously running timers."
 (defun reaper-edit-entry-project ()
   "Edit project of entry at point."
   (interactive)
-  (unless (bound-and-true-p reaper-project-tasks)
-    (reaper-refresh-project-tasks))
+  (reaper-ensure-project-tasks)
   (let* ((entry-id (tabulated-list-get-id))
          (entry (assoc entry-id reaper-timeentries)))
     (when entry
@@ -391,8 +400,7 @@ Stops any previously running timers."
 (defun reaper-edit-entry-task ()
   "Edit task of entry at point."
   (interactive)
-  (unless (bound-and-true-p reaper-project-tasks)
-    (reaper-refresh-project-tasks))
+  (reaper-ensure-project-tasks)
   (let* ((entry-id (tabulated-list-get-id))
          (entry (assoc entry-id reaper-timeentries)))
     (when entry
@@ -406,8 +414,7 @@ Stops any previously running timers."
 (defun reaper-edit-entry-description ()
   "Edit description of entry at point."
   (interactive)
-  (unless (bound-and-true-p reaper-project-tasks)
-    (reaper-refresh-project-tasks))
+  (reaper-ensure-project-tasks)
   (let* ((entry-id (tabulated-list-get-id))
          (entry (assoc entry-id reaper-timeentries)))
     (when entry
