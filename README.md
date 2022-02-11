@@ -63,7 +63,7 @@ Bindings in the buffer:
 * `t` - edit time for entry at point (even works for running timers).
   Supports `+` and `-` calculations.
 * `Q` - to kill reaper buffer. Stops timers and clears all local data.
-* '!' - To clear the project/task cache and refresh from Harvest.
+* `!` - To clear the project/task cache and refresh from Harvest.
 
 # What's in the name
 
