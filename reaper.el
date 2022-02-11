@@ -563,6 +563,7 @@ Will create it if it doesn't exist yet."
 (defun reaper--highlight-running ()
   "Highlight the currently running timer."
   (save-excursion
+    (beginning-of-buffer)
     (while (not (eobp))
       (tabulated-list-put-tag (if (and reaper-running-timer (eq (tabulated-list-get-id) reaper-running-timer)) "->" ""))
       (forward-line 1))))

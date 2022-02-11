@@ -15,6 +15,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 ### Changed
 - `reaper-edit-entry` moved from `e` to `e e`
 
+### Fixed
+- Current running timer indicator not showing up if point is after the
+  running timer.
+
 ## 1.2.1 - 2020-11-14
 ### Fixed
 - Fix `reaper-goto-date`
