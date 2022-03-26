@@ -39,6 +39,11 @@ and use Emacs customization interface to set `reaper-api-key` to the
 given value. On the same page at Harvest you should be able to see the
 account id you'll need for `reaper-account-id`.
 
+Harvest supports two timer modes to track time via hours duration and via start and end time.
+Use `reaper-hours-timer-mode` to customize the timer mode.
+Default value is `t` which means hours duration is used to track time.
+Set variable to `nil` if you want to track time via start and end time.
+
 ## Usage
 
 Use `M-x reaper` to open the buffer (or whatever key sequence you've bound it to). 
