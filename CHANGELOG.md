@@ -9,7 +9,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
   `reaper-entry-project`, `reaper-entry-task-id`, `reaper-entry-task`,
   `reaper-entry-is-running`, `reaper-entry-hours` and
   `reaper-entry-notes` macros to handle time entries.
-  
+- `reaper-with-selected-timer` for working with the timer at point.
+
 ### Changed
 - Use `(goto-char (point-min))` instead of `(beginning-of-buffer)`
 

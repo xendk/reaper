@@ -147,6 +147,12 @@
   "Get notes of time ENTRY."
   `(cdr (assoc :notes ,entry)))
 
+(defmacro reaper-with-selected-timer (&rest body)
+  "Run BODY with the time entry at point as ENTRY."
+  `(let ((entry (reaper-get-entry (tabulated-list-get-id))))
+     (when entry
+       ,@body)))
+
 (define-derived-mode reaper-mode tabulated-list-mode "Reaper"
   "Major mode for Reaper buffer.
 \\<reaper-mode-map>
@@ -373,21 +379,20 @@ Stops any previously running timers."
 (defun reaper-delete-entry ()
   "Delete time entry at point."
   (interactive)
-  (let ((entry (reaper-get-entry (tabulated-list-get-id))))
-    (when (and entry
-               (yes-or-no-p (format "Are you sure you want to delete \"%s - %s: %s"
-                                    (reaper-entry-project entry)
-                                    (reaper-entry-task entry)
-                                    (reaper-entry-notes entry))))
-      ;; Go forward a line, so tabulated-list-mode has an entry to
-      ;; stick to.
-      (forward-line 1)
-      (unless (tabulated-list-get-id)
-        ;; If there's no entry on the following line, go back to the
-        ;; previous instead.
-        (forward-line -2))
-      (reaper-api "DELETE" (format "time_entries/%s" (reaper-entry-id entry)) nil "Deleted entry")
-      (reaper-refresh))))
+  (reaper-with-selected-timer
+   (when (yes-or-no-p (format "Are you sure you want to delete \"%s - %s: %s"
+                              (reaper-entry-project entry)
+                              (reaper-entry-task entry)
+                              (reaper-entry-notes entry)))
+     ;; Go forward a line, so tabulated-list-mode has an entry to
+     ;; stick to.
+     (forward-line 1)
+     (unless (tabulated-list-get-id)
+       ;; If there's no entry on the following line, go back to the
+       ;; previous instead.
+       (forward-line -2))
+     (reaper-api "DELETE" (format "time_entries/%s" (reaper-entry-id entry)) nil "Deleted entry")
+     (reaper-refresh))))
 
 (defun reaper-kill-buffer ()
   "Kill reaper buffer. Will remove timers and cached data."
@@ -398,76 +403,71 @@ Stops any previously running timers."
   "Edit entry at point."
   (interactive)
   (reaper-ensure-project-tasks)
-  (let ((entry (reaper-get-entry (tabulated-list-get-id))))
-    (when entry
-      (let* ((project (reaper-read-project (reaper-entry-project-id entry)))
-             (task-id (reaper-read-task project (reaper-entry-task-id entry)))
-             (notes (read-string "Description: " (reaper-entry-notes entry)))
-             (harvest-payload (make-hash-table :test 'equal)))
-        (puthash "project_id" (cdr (assoc :id project)) harvest-payload)
-        (puthash "task_id" task-id harvest-payload)
-        (puthash "notes" notes harvest-payload)
-        (reaper-api "PATCH" (format "time_entries/%s" (reaper-entry-id entry)) harvest-payload "Updated entry")
-        (reaper-refresh)))))
+  (reaper-with-selected-timer
+   (let* ((project (reaper-read-project (reaper-entry-project-id entry)))
+          (task-id (reaper-read-task project (reaper-entry-task-id entry)))
+          (notes (read-string "Description: " (reaper-entry-notes entry)))
+          (harvest-payload (make-hash-table :test 'equal)))
+     (puthash "project_id" (cdr (assoc :id project)) harvest-payload)
+     (puthash "task_id" task-id harvest-payload)
+     (puthash "notes" notes harvest-payload)
+     (reaper-api "PATCH" (format "time_entries/%s" (reaper-entry-id entry)) harvest-payload "Updated entry")
+     (reaper-refresh))))
 
 (defun reaper-edit-entry-project ()
   "Edit project of entry at point."
   (interactive)
   (reaper-ensure-project-tasks)
-  (let ((entry (reaper-get-entry (tabulated-list-get-id))))
-    (when entry
-      (let* ((project (reaper-read-project (reaper-entry-project-id entry)))
-             ;; When changing project, the possible tasks change too.
-             ;; So if the new project doesn't have the current task,
-             ;; we need to ask for it.
-             (current-task-id (reaper-entry-task-id entry))
-             (task-id
-              (if (assoc current-task-id (cdr (assoc :tasks project)))
-                  current-task-id
-                (reaper-read-task project (reaper-entry-task-id entry))))
-             (harvest-payload (make-hash-table :test 'equal)))
-        (puthash "project_id" (cdr (assoc :id project)) harvest-payload)
-        (puthash "task_id" task-id harvest-payload)
-        (reaper-api "PATCH" (format "time_entries/%s" (reaper-entry-id entry)) harvest-payload "Updated entry")
-        (reaper-refresh)))))
+  (reaper-with-selected-timer
+   (let* ((project (reaper-read-project (reaper-entry-project-id entry)))
+          ;; When changing project, the possible tasks change too.
+          ;; So if the new project doesn't have the current task,
+          ;; we need to ask for it.
+          (current-task-id (reaper-entry-task-id entry))
+          (task-id
+           (if (assoc current-task-id (cdr (assoc :tasks project)))
+               current-task-id
+             (reaper-read-task project (reaper-entry-task-id entry))))
+          (harvest-payload (make-hash-table :test 'equal)))
+     (puthash "project_id" (cdr (assoc :id project)) harvest-payload)
+     (puthash "task_id" task-id harvest-payload)
+     (reaper-api "PATCH" (format "time_entries/%s" (reaper-entry-id entry)) harvest-payload "Updated entry")
+     (reaper-refresh))))
 
 (defun reaper-edit-entry-task ()
   "Edit task of entry at point."
   (interactive)
   (reaper-ensure-project-tasks)
-  (let ((entry (reaper-get-entry (tabulated-list-get-id))))
-    (when entry
-      (let* ((project (cdr (assoc (reaper-entry-project-id entry) reaper-project-tasks)))
-             (task-id (reaper-read-task project (reaper-entry-task-id entry)))
-             (harvest-payload (make-hash-table :test 'equal)))
-        (puthash "task_id" task-id harvest-payload)
-        (reaper-api "PATCH" (format "time_entries/%s" (reaper-entry-id entry)) harvest-payload "Updated entry")
-        (reaper-refresh)))))
+  (reaper-with-selected-timer
+   (let* ((project (cdr (assoc (reaper-entry-project-id entry) reaper-project-tasks)))
+          (task-id (reaper-read-task project (reaper-entry-task-id entry)))
+          (harvest-payload (make-hash-table :test 'equal)))
+     (puthash "task_id" task-id harvest-payload)
+     (reaper-api "PATCH" (format "time_entries/%s" (reaper-entry-id entry)) harvest-payload "Updated entry")
+     (reaper-refresh))))
 
 (defun reaper-edit-entry-description ()
   "Edit description of entry at point."
   (interactive)
   (reaper-ensure-project-tasks)
-  (let ((entry (reaper-get-entry (tabulated-list-get-id))))
-    (when entry
-      (let* ((notes (read-string "Description: " (reaper-entry-notes entry)))
-             (harvest-payload (make-hash-table :test 'equal)))
-        (puthash "notes" notes harvest-payload)
-        (reaper-api "PATCH" (format "time_entries/%s" (reaper-entry-id entry)) harvest-payload "Updated entry")
-        (reaper-refresh)))))
+  (reaper-with-selected-timer
+   (let* ((notes (read-string "Description: " (reaper-entry-notes entry)))
+          (harvest-payload (make-hash-table :test 'equal)))
+     (puthash "notes" notes harvest-payload)
+     (reaper-api "PATCH" (format "time_entries/%s" (reaper-entry-id entry)) harvest-payload "Updated entry")
+     (reaper-refresh))))
 
 (defun reaper-edit-entry-time ()
   "Edit time of entry at point."
   (interactive)
-  (let ((entry (reaper-get-entry (tabulated-list-get-id))))
-    (when entry
-      ;; If the timer is running add the time since the data was fetched.
-      (let* ((time (reaper--hours-to-time (reaper--hours-accounting-for-running-timer entry)))
-             (new-time (reaper--time-to-hours-calculation (read-string "New time: " time)))
-             (harvest-payload (make-hash-table :test 'equal)))
-        (puthash "hours" new-time harvest-payload)
-        (reaper-api "PATCH" (format "time_entries/%s" (reaper-entry-id entry)) harvest-payload "Updated entry")
-        (reaper-refresh)))))
+  (reaper-with-selected-timer
+   ;; If the timer is running add the time since the data was fetched.
+   (let* ((time (reaper--hours-to-time (reaper--hours-accounting-for-running-timer entry)))
+          (new-time (reaper--time-to-hours-calculation (read-string "New time: " time)))
+          (harvest-payload (make-hash-table :test 'equal)))
+     (puthash "hours" new-time harvest-payload)
+     (reaper-api "PATCH" (format "time_entries/%s" (reaper-entry-id entry)) harvest-payload "Updated entry")
+     (reaper-refresh))))
 
 (defun reaper-read-project (&optional default)
   "Read a project from the user. Default to DEFAULT."
