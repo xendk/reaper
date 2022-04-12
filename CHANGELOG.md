@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
 ## Unreleased
+### Added
+- `reaper-get-entry`, `reaper-entry-id`, `reaper-entry-project-id`,
+  `reaper-entry-project`, `reaper-entry-task-id`, `reaper-entry-task`,
+  `reaper-entry-is-running`, `reaper-entry-hours` and
+  `reaper-entry-notes` macros to handle time entries.
+  
 ### Changed
 - Use `(goto-char (point-min))` instead of `(beginning-of-buffer)`
 
