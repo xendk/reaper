@@ -574,7 +574,7 @@ Will create it if it doesn't exist yet."
      (reaper-refresh-entries))
    (setq reaper-total-hours 0)
    (let
-       ((entries (cl-loop for (id . entry) in reaper-timeentries
+       ((entries (cl-loop for (_id . entry) in reaper-timeentries
                           collect (list
                                    (reaper-entry-id entry)
                                    (vector
