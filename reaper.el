@@ -70,6 +70,13 @@
 (defvar reaper-running-hours 0
   "Hours tracked on the currently running timer.")
 
+(defvar reaper-autofile-functions nil
+  "Functions to automatically categorize entries from notes.
+Each function is called with one argument NOTE which is the user
+supplied note. If one of these functions returns a cons
+of (project_id . task_id), those are used and the rest are not
+called.")
+
 (defvar-local reaper-timeentries nil
   "Cache of Harvest time entries.")
 
@@ -387,10 +394,14 @@ Stops any previously running timers."
   "Create a new running timer."
   (interactive)
   (reaper-ensure-project-tasks)
-  (let* (
-         (project (reaper-read-project (reaper-project-id (reaper-get-head-project))))
-         (task-id (reaper-read-task project (car (car (reaper-project-tasks project)))))
-         (notes (read-string "Description: "))
+  (let* ((notes (read-string "Description: "))
+         (autofile (run-hook-with-args-until-success 'reaper-autofile-functions notes))
+         (project
+          (or (and (consp autofile) (reaper-get-project (car autofile)))
+              (reaper-read-project (reaper-project-id (reaper-get-head-project)))))
+         (task-id (or (and (consp autofile) (when (assoc (cdr autofile) (reaper-project-tasks project))
+                                              (cdr autofile)))
+                      (reaper-read-task project (car (car (reaper-project-tasks project))))))
          (harvest-payload (make-hash-table :test 'equal)))
     (puthash "project_id" (reaper-project-id project) harvest-payload)
     (puthash "task_id" task-id harvest-payload)

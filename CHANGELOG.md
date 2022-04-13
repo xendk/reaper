@@ -13,9 +13,14 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 - `reaper-get-project`, `reaper-get-head-project`,
   `reaper-project-id`, `reaper-project-code`, `reaper-project-name`
   and `reaper-project-tasks` for working with projects.
+- `reaper-autofile-functions` for automatically set project and/or
+  task depending on notes. Implementations should return a cons of
+  project id and task id.
 
 ### Changed
 - Use `(goto-char (point-min))` instead of `(beginning-of-buffer)`
+- Ask for notes first when starting new timer, in order to support
+  `reaper-autofile-functions`
 
 ## 1.3.0 - 2022-04-11
 ### Added
