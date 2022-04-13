@@ -113,7 +113,7 @@
 
 (defmacro reaper-get-entry (id)
   "Get the time entry with ID."
-  `(assoc ,id reaper-timeentries))
+  `(cdr (assoc ,id reaper-timeentries)))
 
 (defmacro reaper-entry-id (entry)
   "Get id of time ENTRY."
@@ -152,6 +152,30 @@
   `(let ((entry (reaper-get-entry (tabulated-list-get-id))))
      (when entry
        ,@body)))
+
+(defmacro reaper-get-project (id)
+  "Get the project with ID."
+  `(cdr (assoc ,id reaper-project-tasks)))
+
+(defmacro reaper-get-head-project ()
+  "Get the \"head\" project, that's either the the last used, or the first."
+  `(cdr (car reaper-project-tasks)))
+
+(defmacro reaper-project-id (project)
+  "Get id of PROJECT."
+  `(cdr (assoc :id ,project)))
+
+(defmacro reaper-project-code (project)
+  "Get code of PROJECT."
+  `(cdr (assoc :code ,project)))
+
+(defmacro reaper-project-name (project)
+  "Get name of PROJECT."
+  `(cdr (assoc :name ,project)))
+
+(defmacro reaper-project-tasks (project)
+  "Get tasks of PROJECT."
+  `(cdr (assoc :tasks ,project)))
 
 (define-derived-mode reaper-mode tabulated-list-mode "Reaper"
   "Major mode for Reaper buffer.
@@ -364,11 +388,11 @@ Stops any previously running timers."
   (interactive)
   (reaper-ensure-project-tasks)
   (let* (
-         (project (reaper-read-project (cdr (assoc :id (cdr (car reaper-project-tasks))))))
-         (task-id (reaper-read-task project (car (car (cdr (assoc :tasks project))))))
+         (project (reaper-read-project (reaper-project-id (reaper-get-head-project))))
+         (task-id (reaper-read-task project (car (car (reaper-project-tasks project)))))
          (notes (read-string "Description: "))
          (harvest-payload (make-hash-table :test 'equal)))
-    (puthash "project_id" (cdr (assoc :id project)) harvest-payload)
+    (puthash "project_id" (reaper-project-id project) harvest-payload)
     (puthash "task_id" task-id harvest-payload)
     (puthash "spent_date" (format-time-string "%Y-%m-%d") harvest-payload)
     (puthash "notes" notes harvest-payload)
@@ -425,11 +449,11 @@ Stops any previously running timers."
           ;; we need to ask for it.
           (current-task-id (reaper-entry-task-id entry))
           (task-id
-           (if (assoc current-task-id (cdr (assoc :tasks project)))
+           (if (assoc current-task-id (reaper-project-tasks project))
                current-task-id
              (reaper-read-task project (reaper-entry-task-id entry))))
           (harvest-payload (make-hash-table :test 'equal)))
-     (puthash "project_id" (cdr (assoc :id project)) harvest-payload)
+     (puthash "project_id" (reaper-project-id project) harvest-payload)
      (puthash "task_id" task-id harvest-payload)
      (reaper-api "PATCH" (format "time_entries/%s" (reaper-entry-id entry)) harvest-payload "Updated entry")
      (reaper-refresh))))
@@ -439,7 +463,7 @@ Stops any previously running timers."
   (interactive)
   (reaper-ensure-project-tasks)
   (reaper-with-selected-timer
-   (let* ((project (cdr (assoc (reaper-entry-project-id entry) reaper-project-tasks)))
+   (let* ((project (reaper-get-project (reaper-entry-project-id entry)))
           (task-id (reaper-read-task project (reaper-entry-task-id entry)))
           (harvest-payload (make-hash-table :test 'equal)))
      (puthash "task_id" task-id harvest-payload)
@@ -472,10 +496,13 @@ Stops any previously running timers."
 (defun reaper-read-project (&optional default)
   "Read a project from the user. Default to DEFAULT."
   (let* ((projects (mapcar (lambda (project)
-                             (cons (concat "[" (cdr (assoc :code project)) "] " (cdr (assoc :name project))) project))
+                             ;; Really, we should take the cdr of
+                             ;; project here, but reaper-project-*
+                             ;; doesn't care as they're using assoc.
+                             (cons (concat "[" (reaper-project-code project) "] " (reaper-project-name project)) (cdr project)))
                            reaper-project-tasks))
-         (default (cdr (assoc default reaper-project-tasks)))
-         (default-option (when default (concat "[" (cdr (assoc :code default)) "] " (cdr (assoc :name default)))))
+         (default (reaper-get-project default))
+         (default-option (when default (concat "[" (reaper-project-code default) "] " (reaper-project-name default))))
          (project (cdr (assoc (reaper--completing-read "Project: " projects default-option) projects))))
     project))
 
@@ -483,8 +510,8 @@ Stops any previously running timers."
   "Read a task for PROJECT from the user. Default to DEFAULT.
 Returns task id."
   (let*
-      ((tasks (mapcar (lambda (task) (cons (cdr task) (car task))) (cdr (assoc :tasks project))))
-       (default (when default (cdr (assoc default (cdr (assoc :tasks project))))))
+      ((tasks (mapcar (lambda (task) (cons (cdr task) (car task))) (reaper-project-tasks project)))
+       (default (when default (cdr (assoc default (reaper-project-tasks project)))))
        (task-id (cdr (assoc (reaper--completing-read "Task: " tasks default) tasks))))
     task-id))
 
@@ -703,12 +730,13 @@ in last used order when using ivy."
   "Save PROJECT and TASK-ID as last used."
   ;; Simply move the last used project to the top of the list, and the
   ;; last used task to the top of the list of tasks on the project.
-  (setq reaper-project-tasks (delq project reaper-project-tasks))
-  (let* ((tasks (cdr (assoc :tasks project)))
+  (setq reaper-project-tasks (assoc-delete-all (reaper-project-id project) reaper-project-tasks))
+  (let* ((tasks (reaper-project-tasks project))
          (task (assoc task-id tasks)))
     (cons task (delq task tasks))
-    (setf (cdr (assoc :tasks project)) (cons task (delq task tasks))))
-  (push project reaper-project-tasks))
+    (setf (reaper-project-tasks project) (cons task (delq task tasks))))
+  ;; Create a proper alist.
+  (push (cons (reaper-project-id project) project) reaper-project-tasks))
 
 (provide 'reaper)
 ;;; reaper.el ends here
