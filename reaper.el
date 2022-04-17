@@ -233,6 +233,23 @@ If no timer is running, return nil."
        (when entry
          (reaper-entry-notes entry))))))
 
+(defun reaper-insert-project-id ()
+  "Prompt for a project and insert the id of the selected project into the current buffer."
+  (interactive)
+  (reaper-ensure-project-tasks)
+  (let ((project (reaper-with-buffer (reaper-read-project (reaper-project-id (reaper-get-head-project))))))
+    (when project
+      (insert (number-to-string (reaper-project-id project))))))
+
+(defun reaper-insert-task-id ()
+  "Prompt for a project and task, and insert the id of the selected task of project into the current buffer."
+  (interactive)
+  (reaper-ensure-project-tasks)
+  (let* ((project (reaper-with-buffer (reaper-read-project (reaper-project-id (reaper-get-head-project)))))
+         (task-id (reaper-read-task project (car (car (reaper-project-tasks project))))))
+    (when task-id
+      (insert (number-to-string task-id)))))
+
 (defun reaper-kill-buffer-hook ()
   "Cancel running timers when the buffer gets killed."
   (when reaper-update-timer

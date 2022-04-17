@@ -16,6 +16,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 - `reaper-autofile-functions` for automatically set project and/or
   task depending on notes. Implementations should return a cons of
   project id and task id.
+- `reaper-insert-project-id` and `reaper-insert-task-id`, for easy
+  insertion of project and task ids.
 
 ### Changed
 - Use `(goto-char (point-min))` instead of `(beginning-of-buffer)`.

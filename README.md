@@ -65,6 +65,29 @@ Bindings in the buffer:
 * `Q` - to kill reaper buffer. Stops timers and clears all local data.
 * `!` - To clear the project/task cache and refresh from Harvest.
 
+## Autofiling
+
+With `reaper-autofile-functions`, project and task can be derived from
+the note text. This is handy if ticket ids maps to projects, or to
+match some description to the same project/task. For instance:
+
+``` emacs-lisp
+(defun xen-reaper-autofile-function (notes)
+  (cond
+   ((string-match (rx "IA-" num) notes)
+    (cons 308078 262899))
+   ((string-match (rx string-start "Ill" string-end) notes)
+    (cons 308078 276083))))
+(add-hook 'reaper-autofile-functions 'xen-reaper-autofile-function)
+```
+
+Would automatically file entries mentioning "IA-<num>" tickets on
+"Internal affairs - Code", while notes that only contain "Ill" will be
+filed under "Internal affairs - sick leave".
+
+The functions `reaper-insert-project-id` and `reaper-insert-task-id`
+makes it easier to insert the proper project and task ids.
+
 # What's in the name
 
 Harvest was obviously taken. Reaper alludes to Grim Reaper which I
