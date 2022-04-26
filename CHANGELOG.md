@@ -9,7 +9,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
   `reaper-entry-project`, `reaper-entry-task-id`, `reaper-entry-task`,
   `reaper-entry-is-running`, `reaper-entry-hours` and
   `reaper-entry-notes` macros to handle time entries.
-- `reaper-with-selected-timer` for working with the timer at point.
+- `reaper-with-selected-entry` for working with the entry at point.
 - `reaper-get-project`, `reaper-get-head-project`,
   `reaper-project-id`, `reaper-project-code`, `reaper-project-name`
   and `reaper-project-tasks` for working with projects.

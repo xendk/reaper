@@ -154,7 +154,7 @@ called.")
   "Get notes of time ENTRY."
   `(cdr (assoc :notes ,entry)))
 
-(defmacro reaper-with-selected-timer (&rest body)
+(defmacro reaper-with-selected-entry (&rest body)
   "Run BODY with the time entry at point as ENTRY."
   `(let ((entry (reaper-get-entry (tabulated-list-get-id))))
      (when entry
@@ -431,7 +431,7 @@ Stops any previously running timers."
 (defun reaper-delete-entry ()
   "Delete time entry at point."
   (interactive)
-  (reaper-with-selected-timer
+  (reaper-with-selected-entry
    (when (yes-or-no-p (format "Are you sure you want to delete \"%s - %s: %s"
                               (reaper-entry-project entry)
                               (reaper-entry-task entry)
@@ -455,7 +455,7 @@ Stops any previously running timers."
   "Edit entry at point."
   (interactive)
   (reaper-ensure-project-tasks)
-  (reaper-with-selected-timer
+  (reaper-with-selected-entry
    (let* ((project (reaper-read-project (reaper-entry-project-id entry)))
           (task-id (reaper-read-task project (reaper-entry-task-id entry)))
           (notes (read-string "Description: " (reaper-entry-notes entry)))
@@ -470,7 +470,7 @@ Stops any previously running timers."
   "Edit project of entry at point."
   (interactive)
   (reaper-ensure-project-tasks)
-  (reaper-with-selected-timer
+  (reaper-with-selected-entry
    (let* ((project (reaper-read-project (reaper-entry-project-id entry)))
           ;; When changing project, the possible tasks change too.
           ;; So if the new project doesn't have the current task,
@@ -490,7 +490,7 @@ Stops any previously running timers."
   "Edit task of entry at point."
   (interactive)
   (reaper-ensure-project-tasks)
-  (reaper-with-selected-timer
+  (reaper-with-selected-entry
    (let* ((project (reaper-get-project (reaper-entry-project-id entry)))
           (task-id (reaper-read-task project (reaper-entry-task-id entry)))
           (harvest-payload (make-hash-table :test 'equal)))
@@ -502,7 +502,7 @@ Stops any previously running timers."
   "Edit description of entry at point."
   (interactive)
   (reaper-ensure-project-tasks)
-  (reaper-with-selected-timer
+  (reaper-with-selected-entry
    (let* ((notes (read-string "Description: " (reaper-entry-notes entry)))
           (harvest-payload (make-hash-table :test 'equal)))
      (puthash "notes" notes harvest-payload)
@@ -512,7 +512,7 @@ Stops any previously running timers."
 (defun reaper-edit-entry-time ()
   "Edit time of entry at point."
   (interactive)
-  (reaper-with-selected-timer
+  (reaper-with-selected-entry
    ;; If the timer is running add the time since the data was fetched.
    (let* ((time (reaper--hours-to-time (reaper--hours-accounting-for-running-timer entry)))
           (new-time (reaper--time-to-hours-calculation (read-string "New time: " time)))
