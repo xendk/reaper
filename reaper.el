@@ -77,8 +77,14 @@ supplied note. If one of these functions returns a cons
 of (project_id . task_id), those are used and the rest are not
 called.")
 
+(defvar-local reaper-user-id nil
+  "Cached id of user.")
+
 (defvar-local reaper-timeentries nil
   "Cache of Harvest time entries.")
+
+(defvar-local reaper-timeentries-loading nil
+  "Whether we're currently fetching time entries.")
 
 (defvar-local reaper-project-tasks nil
   "Cache of projects and tasks.")
@@ -266,15 +272,22 @@ If no timer is running, return nil."
 (defun reaper-refresh-entries ()
   "Fetch time-entries from Harvest."
   (reaper--check-credentials)
-  (reaper-with-buffer
-   (message "Refreshing data from Harvest...")
-   (let* ((response-entries
-           (reaper-alist-get '(time_entries)
-                             (reaper-api "GET"
-                                         (format "time_entries?from=%s&to=%s&user_id=%s"  reaper-date reaper-date (reaper--get-user-id))
-                                         nil
-                                         "Refreshed cache of daily entries")))
-          (request-time (current-time)))
+  (unless reaper-timeentries-loading
+    (reaper-with-buffer
+     (setq reaper-timeentries-loading t)
+     ;; (message "Refreshing data from Harvest...")
+     (unless reaper-user-id
+       (setq reaper-user-id (reaper--get-user-id)))
+     (reaper-api-async "GET"
+                       (format "time_entries?from=%s&to=%s&user_id=%s"  reaper-date reaper-date reaper-user-id)
+                       nil
+                       'reaper--update-entries))))
+
+(defun reaper--update-entries (data)
+  "Update `reaper--timeentries' with DATA."
+  (let ((request-time (current-time))
+        (response-entries (reaper-alist-get '(time_entries) data)))
+    (reaper-with-buffer
      (setq reaper-running-timer nil)
      (setq reaper-timeentries
            (mapcar
@@ -294,7 +307,9 @@ If no timer is running, return nil."
                                     (if notes (decode-coding-string notes 'utf-8) ""))))))
             ;; API returns newest entry first. Simply reverse the list.
             (reverse response-entries)))
-     (setq reaper-fetch-time request-time))))
+     (setq reaper-fetch-time request-time)
+     (setq reaper-timeentries-loading nil)
+     (reaper-update-buffer))))
 
 (defun reaper-clear-project-tasks ()
   "Clear cached projects and tasks."
@@ -336,8 +351,13 @@ If no timer is running, return nil."
 (defun reaper-refresh-buffer ()
   "Refresh Reaper buffer."
   (interactive)
-  (unless (bound-and-true-p reaper-timeentries)
+  (unless (and (bound-and-true-p reaper-timeentries) (not reaper-timeentries-loading))
     (reaper-refresh-entries))
+  (reaper-update-buffer))
+
+(defun reaper-update-buffer ()
+  "Update Reaper buffer."
+  (interactive)
   (tabulated-list-init-header)
   (tabulated-list-print t)
   (reaper--highlight-running))
@@ -583,6 +603,41 @@ URL, VISIT, BEG, END and REPLACE is the same as for
       (url-http--insert-file-helper buffer url visit))
     (url-insert-buffer-contents buffer url visit beg end replace)))
 
+(defun reaper-api-async (method path payload callback)
+  "Make an asynchronous METHOD call to PATH with PAYLOAD and call CALLBACK on completion."
+  (reaper--check-credentials)
+  (let* ((url-request-method method)
+         ;;(url-set-mime-charset-string)
+         (url-mime-language-string nil)
+         (url-mime-encoding-string nil)
+         (url-mime-accept-string "application/json")
+         (url-personal-mail-address nil)
+         (url-request-data (if (or (string-equal method "POST")
+                                   (string-equal method "PATCH"))
+                               (encode-coding-string (json-encode payload) 'utf-8)
+                             nil))
+         (request-url (format "https://api.harvestapp.com/v2/%s" path))
+         (url-request-extra-headers
+          `(("Content-Type" . "application/json")
+            ("Authorization" . ,(concat "Bearer " reaper-api-key))
+            ("Harvest-Account-Id" . ,reaper-account-id)
+            ("User-Agent" . "Xen's Emacs client (fini@reload.dk)"))))
+    (url-retrieve request-url
+                  #'(lambda (&rest ignored)
+                      (let ((async-buffer (current-buffer)))
+                        (with-temp-buffer
+                          (when (fboundp 'url-http--insert-file-helper)
+                            ;; XXX: This is HTTP/S specific and should be moved to url-http
+                            ;; instead.  See bug#17549.
+                            (url-http--insert-file-helper async-buffer request-url))
+                          (url-insert-buffer-contents async-buffer request-url)
+                          (goto-char (point-min))
+                          ;; Ensure JSON false values is nil.
+                          (defvar json-false)
+                          (let ((json-false nil))
+                            (funcall callback (json-read))))))
+                  nil t)))
+
 (defun reaper-alist-get (symbols alist)
   "Look up the value for the chain of SYMBOLS in ALIST."
   (if symbols
@@ -625,27 +680,29 @@ Will create it if it doesn't exist yet."
 (defun reaper--list-entries ()
   "Return list of entries for `tabulated-list-mode'."
   (reaper-with-buffer
-   (unless (bound-and-true-p reaper-timeentries)
-     (reaper-refresh-entries))
-   (setq reaper-total-hours 0)
-   (let
-       ((entries (cl-loop for (_id . entry) in reaper-timeentries
-                          collect (list
-                                   (reaper-entry-id entry)
-                                   (vector
-                                    (reaper-entry-project entry)
-                                    (reaper-entry-task entry)
-                                    (let ((hours (reaper--hours-accounting-for-running-timer entry)))
-                                      (setq reaper-total-hours (+ hours reaper-total-hours))
-                                      (reaper--hours-to-time hours))
-                                    ;; For running timer, use time since timer_started_at.
-                                    ;; Replace newlines as they mess with tabulated-list-mode.
-                                    (replace-regexp-in-string "\n" "\\\\n" (reaper-entry-notes entry)))))))
-     (append
-      entries
-      (list
-       (list nil (vconcat [] (mapcar (lambda (x) (make-string (elt x 1) ?-)) reaper--list-format)))
-       (list nil (vector "Total" "" (reaper--hours-to-time reaper-total-hours) "")))))))
+   (if reaper-timeentries-loading
+       (list
+        (list nil (vector "" "" "" ""))
+        (list nil (vector "Loading, please wait." "" "" "")))
+     (setq reaper-total-hours 0)
+     (let
+         ((entries (cl-loop for (_id . entry) in reaper-timeentries
+                            collect (list
+                                     (reaper-entry-id entry)
+                                     (vector
+                                      (reaper-entry-project entry)
+                                      (reaper-entry-task entry)
+                                      (let ((hours (reaper--hours-accounting-for-running-timer entry)))
+                                        (setq reaper-total-hours (+ hours reaper-total-hours))
+                                        (reaper--hours-to-time hours))
+                                      ;; For running timer, use time since timer_started_at.
+                                      ;; Replace newlines as they mess with tabulated-list-mode.
+                                      (replace-regexp-in-string "\n" "\\\\n" (reaper-entry-notes entry)))))))
+       (append
+        entries
+        (list
+         (list nil (vconcat [] (mapcar (lambda (x) (make-string (elt x 1) ?-)) reaper--list-format)))
+         (list nil (vector "Total" "" (reaper--hours-to-time reaper-total-hours) ""))))))))
 
 (defun reaper--highlight-running ()
   "Highlight the currently running timer."

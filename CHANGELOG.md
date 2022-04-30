@@ -23,6 +23,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 - Use `(goto-char (point-min))` instead of `(beginning-of-buffer)`.
 - Ask for notes first when starting new timer, in order to support
   `reaper-autofile-functions`.
+- Fetch time entries asynchronously.
 
 ## 1.3.0 - 2022-04-11
 ### Added
