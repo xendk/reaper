@@ -89,6 +89,10 @@ called.")
 (defvar-local reaper-project-tasks nil
   "Cache of projects and tasks.")
 
+(defvar-local reaper-last-marked-entry nil
+  "ID of the time entry point was on before last fetch. Used to
+relocate point to the same entry after redisplaying.")
+
 (defvar-local reaper-running-timer nil
   "Currently running timer.")
 
@@ -274,6 +278,8 @@ If no timer is running, return nil."
   (reaper--check-credentials)
   (unless reaper-timeentries-loading
     (reaper-with-buffer
+     ;; Remember which entry point was on.
+     (setq reaper-last-marked-entry (tabulated-list-get-id))
      (setq reaper-timeentries-loading t)
      (unless reaper-user-id
        (setq reaper-user-id (reaper--get-user-id)))
@@ -359,7 +365,7 @@ If no timer is running, return nil."
   (interactive)
   (tabulated-list-init-header)
   (tabulated-list-print t)
-  (reaper--highlight-running))
+  (reaper--highlight-running-and-move-point))
 
 (defun reaper--goto-date (date-string)
   "Go to a date.
@@ -703,13 +709,21 @@ Will create it if it doesn't exist yet."
          (list nil (vconcat [] (mapcar (lambda (x) (make-string (elt x 1) ?-)) reaper--list-format)))
          (list nil (vector "Total" "" (reaper--hours-to-time reaper-total-hours) ""))))))))
 
-(defun reaper--highlight-running ()
-  "Highlight the currently running timer."
-  (save-excursion
-    (goto-char (point-min))
-    (while (not (eobp))
-      (tabulated-list-put-tag (if (and reaper-running-timer (eq (tabulated-list-get-id) reaper-running-timer)) "->" ""))
-      (forward-line 1))))
+(defun reaper--highlight-running-and-move-point ()
+  "Highlight the currently running timer, and move point to the last selected entry."
+  (let ((move-to))
+    (save-excursion
+      (goto-char (point-min))
+      (while (not (eobp))
+        (let ((id (tabulated-list-get-id)))
+          (when (and reaper-running-timer (eq id reaper-running-timer))
+            (tabulated-list-put-tag "->"))
+          (when (and reaper-last-marked-entry (eq reaper-last-marked-entry id))
+            (setq move-to (point)))
+          (forward-line 1))))
+    ;; Move point to the entry we stored, if found.
+    (when move-to
+      (goto-char move-to))))
 
 (defun reaper--hours-to-time (hours)
   "Convert Harvest HOURS to a time string."

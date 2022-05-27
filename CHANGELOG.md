@@ -25,6 +25,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
   `reaper-autofile-functions`.
 - Fetch time entries asynchronously.
 
+### Fixed
+- Ensure the point is on the same time entry after re-displaying, even
+  with a asynchronous fetching.
+
 ## 1.3.0 - 2022-04-11
 ### Added
 - `e d` to edit entry description.
