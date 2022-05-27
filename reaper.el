@@ -275,7 +275,6 @@ If no timer is running, return nil."
   (unless reaper-timeentries-loading
     (reaper-with-buffer
      (setq reaper-timeentries-loading t)
-     ;; (message "Refreshing data from Harvest...")
      (unless reaper-user-id
        (setq reaper-user-id (reaper--get-user-id)))
      (reaper-api-async "GET"
