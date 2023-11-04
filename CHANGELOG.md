@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
 ## Unreleased
+
+## 1.4.0 - 2023-11-04
 ### Added
 - `reaper-get-entry`, `reaper-entry-id`, `reaper-entry-project-id`,
   `reaper-entry-project`, `reaper-entry-task-id`, `reaper-entry-task`,
