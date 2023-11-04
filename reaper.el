@@ -231,7 +231,7 @@ relocate point to the same entry after redisplaying.")
   (interactive)
   (reaper--check-credentials)
   (reaper-with-buffer
-   (select-window (display-buffer (current-buffer)))))
+   (pop-to-buffer (current-buffer))))
 
 (defun reaper-get-running-timer-note ()
   "Return the note (description) of the current running timer.

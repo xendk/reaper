@@ -24,6 +24,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 - Ask for notes first when starting new timer, in order to support
   `reaper-autofile-functions`.
 - Fetch time entries asynchronously.
+- Use `pop-to-buffer`, which handles some edge cases.
 
 ### Fixed
 - Ensure the point is on the same time entry after re-displaying, even
