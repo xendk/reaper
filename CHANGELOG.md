@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
 ## Unreleased
+### Added
+- Show currently shown date in mode-line.
 
 ## 1.4.0 - 2023-11-04
 ### Added

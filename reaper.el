@@ -210,7 +210,7 @@ relocate point to the same entry after redisplaying.")
         reaper-date (format-time-string "%Y-%m-%d")
         ;; In special-mode, these get set up automatically, but in
         ;; tabulated-list-mode we have to do it ourselves.
-        mode-name "Reaper"
+        mode-name (concat "Reaper " reaper-date)
         major-mode 'reaper-mode
         tabulated-list-format reaper--list-format
         tabulated-list-entries #'reaper--list-entries
@@ -363,6 +363,7 @@ If no timer is running, return nil."
 (defun reaper-update-buffer ()
   "Update Reaper buffer."
   (interactive)
+  (setq mode-name (concat "Reaper " reaper-date))
   (tabulated-list-init-header)
   (tabulated-list-print t)
   (reaper--highlight-running-and-move-point))
