@@ -5,6 +5,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
 ## Unreleased
 
+### Changed
+- Delete prompt to have the note before the project task. I find it's
+  what I'm looking for when verifying I'm deleting the right entry.
+
 ### Removed
 - Explicit Ivy support. Ivy hooks into `completing-read` anyway, 
 

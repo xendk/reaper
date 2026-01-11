@@ -457,10 +457,10 @@ Stops any previously running timers."
   "Delete time entry at point."
   (interactive)
   (reaper-with-selected-entry
-   (when (yes-or-no-p (format "Are you sure you want to delete \"%s - %s: %s"
+   (when (yes-or-no-p (format "Are you sure you want to delete \"%s\" in \"%s - %s?\""
+                              (reaper-entry-notes entry)
                               (reaper-entry-project entry)
-                              (reaper-entry-task entry)
-                              (reaper-entry-notes entry)))
+                              (reaper-entry-task entry)))
      ;; Go forward a line, so tabulated-list-mode has an entry to
      ;; stick to.
      (forward-line 1)
