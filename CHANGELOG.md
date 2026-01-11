@@ -5,6 +5,9 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
 ## Unreleased
 
+### Removed
+- Explicit Ivy support. Ivy hooks into `completing-read` anyway, 
+
 ## 1.5.0 - 2025-01-23
 ### Added
 - Show currently shown date in mode-line.

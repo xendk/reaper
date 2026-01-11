@@ -31,7 +31,6 @@
 (require 'url)
 
 ;; Declare what we're using from elsewhere.
-(declare-function ivy-read "ivy")
 (defvar calc-eval-error)
 
 (defgroup reaper nil
@@ -814,16 +813,9 @@ many days from reaper-date."
         0)))
 
 (defun reaper--completing-read (prompt options default)
-  "Complete with PROMPT, with OPTIONS and having DEFAULT.
-Wraps `completing-read', or `ivy-read', in order to sort options
-in last used order when using ivy."
-  (if (eq completing-read-function 'ivy-completing-read)
-      (ivy-read
-       prompt options
-       :require-match t
-       :preselect default
-       :def default)
-    (completing-read prompt options nil t nil nil default)))
+  "Complete with PROMPT, with OPTIONS and having DEFAULT."
+  ;; TODO: provide the history argument.
+  (completing-read prompt options nil t nil nil default))
 
 (defun reaper--last-used (project task-id)
   "Save PROJECT and TASK-ID as last used."
