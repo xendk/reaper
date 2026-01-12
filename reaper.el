@@ -1,6 +1,6 @@
 ;;; reaper.el --- Interact with Harvest time tracking app  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2019  Thomas Fini Hansen
+;; Copyright (C) 2019-2026  Thomas Fini Hansen
 
 ;; Author: Thomas Fini Hansen <xen@xen.dk>
 ;; Created: August 11, 2019

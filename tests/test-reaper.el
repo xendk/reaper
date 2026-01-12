@@ -1,6 +1,6 @@
 ;;; test-reaper.el --- Tests for reaper              -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2019  Thomas Fini Hansen
+;; Copyright (C) 2019-2026  Thomas Fini Hansen
 
 ;; Author: Thomas Fini Hansen <xen@xen.dk>
 
