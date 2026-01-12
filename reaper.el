@@ -583,7 +583,6 @@ Returns task id."
   "Make an METHOD call to PATH with PAYLOAD and COMPLETION-MESSAGE."
   (reaper--check-credentials)
   (let* ((url-request-method method)
-         ;;(url-set-mime-charset-string)
          (url-mime-language-string nil)
          (url-mime-encoding-string nil)
          (url-mime-accept-string "application/json")
@@ -623,7 +622,6 @@ URL, VISIT, BEG, END and REPLACE is the same as for
   "Make an asynchronous METHOD call to PATH with PAYLOAD and call CALLBACK on completion."
   (reaper--check-credentials)
   (let* ((url-request-method method)
-         ;;(url-set-mime-charset-string)
          (url-mime-language-string nil)
          (url-mime-encoding-string nil)
          (url-mime-accept-string "application/json")
