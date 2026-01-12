@@ -26,6 +26,7 @@
 
 ;; Interactive tool for tracking time with Harvest.
 
+;; TODO: provide history for read-string
 (require 'cl-lib)
 (require 'json)
 (require 'url)
@@ -230,6 +231,8 @@ relocate point to the same entry after redisplaying.")
   (interactive)
   (reaper--check-credentials)
   (reaper-with-buffer
+   ;; TODO: figure out arguments to reuse window not just in current
+   ;; frame but across all frames. And use NORECORD for good measure.
    (pop-to-buffer (current-buffer))))
 
 (defun reaper-get-running-timer-note ()
@@ -317,11 +320,16 @@ If no timer is running, return nil."
 
 (defun reaper-clear-project-tasks ()
   "Clear cached projects and tasks."
-  (interactive)
+  ;; TODO: mark all interactive commands that doesn't make sense in
+  ;; any other mode.
+  (interactive nil reaper-mode)
   (setq reaper-project-tasks nil))
 
 (defun reaper-ensure-project-tasks ()
   "Ensure that we have project and tasks fetched."
+  ;; TODO: Should use reaper-with-buffer, unless we're sure all
+  ;; callers already did (which we're not as long as start-new-timer
+  ;; calls us.)
   (unless (bound-and-true-p reaper-project-tasks)
     (reaper-refresh-project-tasks)))
 
@@ -605,6 +613,7 @@ URL, VISIT, BEG, END and REPLACE is the same as for
       ;; XXX: This is HTTP/S specific and should be moved to url-http
       ;; instead.  See bug#17549.
       (url-http--insert-file-helper buffer url visit))
+    ;; TODO: check url-http-response-status
     (url-insert-buffer-contents buffer url visit beg end replace)))
 
 (defun reaper-api-async (method path payload callback)
