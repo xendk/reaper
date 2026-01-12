@@ -587,7 +587,7 @@ Returns task id."
          (url-mime-language-string nil)
          (url-mime-encoding-string nil)
          (url-mime-accept-string "application/json")
-         (url-personal-mail-address nil)
+         (url-user-agent "Xen's Emacs client (fini@reload.dk)")
          (url-request-data (if (or (string-equal method "POST")
                                    (string-equal method "PATCH"))
                                (encode-coding-string (json-encode payload) 'utf-8)
@@ -596,8 +596,7 @@ Returns task id."
          (url-request-extra-headers
           `(("Content-Type" . "application/json")
             ("Authorization" . ,(concat "Bearer " reaper-api-key))
-            ("Harvest-Account-Id" . ,reaper-account-id)
-            ("User-Agent" . "Xen's Emacs client (fini@reload.dk)"))))
+            ("Harvest-Account-Id" . ,reaper-account-id))))
     (with-temp-buffer
       (reaper-url-insert-file-contents request-url)
       (goto-char (point-min))
@@ -628,7 +627,7 @@ URL, VISIT, BEG, END and REPLACE is the same as for
          (url-mime-language-string nil)
          (url-mime-encoding-string nil)
          (url-mime-accept-string "application/json")
-         (url-personal-mail-address nil)
+         (url-user-agent "Xen's Emacs client (fini@reload.dk)")
          (url-request-data (if (or (string-equal method "POST")
                                    (string-equal method "PATCH"))
                                (encode-coding-string (json-encode payload) 'utf-8)
@@ -637,8 +636,7 @@ URL, VISIT, BEG, END and REPLACE is the same as for
          (url-request-extra-headers
           `(("Content-Type" . "application/json")
             ("Authorization" . ,(concat "Bearer " reaper-api-key))
-            ("Harvest-Account-Id" . ,reaper-account-id)
-            ("User-Agent" . "Xen's Emacs client (fini@reload.dk)"))))
+            ("Harvest-Account-Id" . ,reaper-account-id))))
     (url-retrieve request-url
                   #'(lambda (&rest ignored)
                       (let ((async-buffer (current-buffer)))
