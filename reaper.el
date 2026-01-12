@@ -7,7 +7,7 @@
 ;; Version: 1.0.0
 ;; Package-Requires: ((emacs "26.2"))
 ;; Keywords: tools
-;; Url: https://github.com/xendk/reaper
+;; URL: https://github.com/xendk/reaper
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -90,8 +90,9 @@ called.")
   "Cache of projects and tasks.")
 
 (defvar-local reaper-last-marked-entry nil
-  "ID of the time entry point was on before last fetch. Used to
-relocate point to the same entry after redisplaying.")
+  "ID of the time entry point was on before last fetch.
+
+Used to relocate point to the same entry after redisplaying.")
 
 (defvar-local reaper-running-timer nil
   "Currently running timer.")
@@ -196,8 +197,8 @@ relocate point to the same entry after redisplaying.")
 
 (define-derived-mode reaper-mode tabulated-list-mode "Reaper"
   "Major mode for Reaper buffer.
-\\<reaper-mode-map>
-"
+
+\\<reaper-mode-map>"
   :group 'reaper
   :syntax-table nil
   :abbrev-table nil
@@ -468,7 +469,7 @@ Stops any previously running timers."
   "Delete time entry at point."
   (interactive)
   (reaper-with-selected-entry
-   (when (yes-or-no-p (format "Are you sure you want to delete \"%s\" in \"%s - %s?\""
+   (when (yes-or-no-p (format "Are you sure you want to delete \"%s\" in \"%s - %s\"?"
                               (reaper-entry-notes entry)
                               (reaper-entry-project entry)
                               (reaper-entry-task entry)))
@@ -784,7 +785,7 @@ many days from reaper-date."
                                                       (+ (string-to-number (nth 2 current-reaper-date)) days-offset)
                                                       (string-to-number (nth 1 current-reaper-date))
                                                       (string-to-number (nth 0 current-reaper-date)))))
-      (let* ((parts (reverse (split-string date-string "[-\.]")))
+      (let* ((parts (reverse (split-string date-string "[-.]")))
              (day (string-to-number (nth 0 parts)))
              (month (and (nth 1 parts) (string-to-number (nth 1 parts))))
              (year (and (nth 2 parts) (string-to-number (nth 2 parts))))
