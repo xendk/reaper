@@ -1,0 +1,68 @@
+---
+name: Run tests
+
+on:
+  push:
+    paths-ignore: ['**.md']
+  pull_request:
+    paths-ignore: ['**.md']
+
+jobs:
+
+  test:
+    name: Run tests
+    runs-on: ${{matrix.os}}
+    continue-on-error: ${{matrix.emacs_version == 'snapshot'}}
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        emacs_version: ['26.2', '27.1', '28.1', '29.1',
+                        '30.1', '30.2',
+                        'snapshot']
+        include:
+          - os: macos-latest
+            emacs_version: '30.1'
+
+    env:
+      EMACS_VERSION: ${{ matrix.emacs_version }}
+
+    steps:
+      - name: Set up Emacs
+        uses: jcs090218/setup-emacs@master
+        with:
+          version: ${{matrix.emacs_version}}
+
+      - name: Install Eldev
+        uses: emacs-eldev/setup-eldev@v1
+
+      - name: Check out the source code
+        uses: actions/checkout@v4
+        with:
+          # To make automated copyright notice check below work.
+          fetch-depth: 0
+
+      - name: Run tests in packaged mode
+        run: |
+          eldev -p -dtT -C test --expect 24
+
+      - name: Compile
+        run: |
+          eldev -dtT -C compile --set all --warnings-as-errors
+
+      - name: Ensure that copyright notices are up-to-date
+        run: |
+          eldev -p -dvQTC doctor up-to-date-copyright --all-tests
+
+
+      - name: Run tests with coverage
+        run: |
+          eldev -s -dtT -C test
+        env:
+          # Undercover expects this but CodeCov doesn't need a token these days.
+          GITHUB_TOKEN: none
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          env_vars: EMACS_VERSION
