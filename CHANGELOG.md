@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 ### Changed
 - Delete prompt to have the note before the project task. I find it's
   what I'm looking for when verifying I'm deleting the right entry.
+- `reaper-update-buffer` no longer interactive,
+  `reaper-refresh-buffer` is the user visible part.
 
 ### Removed
 - Explicit Ivy support. Ivy hooks into `completing-read` anyway, 

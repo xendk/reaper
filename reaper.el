@@ -361,7 +361,6 @@ If no timer is running, return nil."
 
 (defun reaper-update-buffer ()
   "Update Reaper buffer."
-  (interactive)
   (setq mode-name (concat "Reaper " reaper-date))
   (tabulated-list-init-header)
   (tabulated-list-print t)
