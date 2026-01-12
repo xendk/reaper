@@ -11,6 +11,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 - `reaper-update-buffer` no longer interactive,
   `reaper-refresh-buffer` is the user visible part.
 - Misc linting fixes.
+- Replaced Cask with Eldev for development.
 
 ### Removed
 - Explicit Ivy support. Ivy hooks into `completing-read` anyway, 
