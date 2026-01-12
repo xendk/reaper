@@ -102,5 +102,5 @@ inspiration and initial bootstrapping.
 
 ## License
 
-This project is released under the GPL v3 license. See `GPL` for
+This project is released under the GPL v3 license. See `LICENSE` for
 details.
