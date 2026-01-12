@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
   what I'm looking for when verifying I'm deleting the right entry.
 - `reaper-update-buffer` no longer interactive,
   `reaper-refresh-buffer` is the user visible part.
+- Misc linting fixes.
 
 ### Removed
 - Explicit Ivy support. Ivy hooks into `completing-read` anyway, 

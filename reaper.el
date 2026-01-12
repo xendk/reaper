@@ -619,7 +619,9 @@ URL, VISIT, BEG, END and REPLACE is the same as for
     (url-insert-buffer-contents buffer url visit beg end replace)))
 
 (defun reaper-api-async (method path payload callback)
-  "Make an asynchronous METHOD call to PATH with PAYLOAD and call CALLBACK on completion."
+  "Make an asynchronous HTTP call.
+
+Make a METHOD call to PATH with PAYLOAD and call CALLBACK on completion."
   (reaper--check-credentials)
   (let* ((url-request-method method)
          (url-mime-language-string nil)
@@ -718,7 +720,7 @@ Will create it if it doesn't exist yet."
          (list nil (vector "Total" "" (reaper--hours-to-time reaper-total-hours) ""))))))))
 
 (defun reaper--highlight-running-and-move-point ()
-  "Highlight the currently running timer, and move point to the last selected entry."
+  "Highlight running timer, and move point to the last selected entry."
   (let ((move-to))
     (save-excursion
       (goto-char (point-min))
