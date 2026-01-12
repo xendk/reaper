@@ -1,6 +1,8 @@
 ; -*- mode: emacs-lisp; lexical-binding: t -*-
 
 (eldev-use-plugin 'autoloads)
+(eldev-use-plugin 'undercover)
 
 ;; Make checkdoc not require double space after period.
 (setq sentence-end-double-space nil)
+(setq eldev-undercover-config '(auto codecov dontsend))
