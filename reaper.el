@@ -246,7 +246,9 @@ If no timer is running, return nil."
          (reaper-entry-notes entry))))))
 
 (defun reaper-insert-project-id ()
-  "Prompt for a project and insert the id of the selected project into the current buffer."
+  "Insert project id into the current buffer.
+
+Prompt for a project and insert the id of the selected project."
   (interactive)
   (reaper-ensure-project-tasks)
   (let ((project (reaper-with-buffer (reaper-read-project (reaper-project-id (reaper-get-head-project))))))
@@ -254,7 +256,9 @@ If no timer is running, return nil."
       (insert (number-to-string (reaper-project-id project))))))
 
 (defun reaper-insert-task-id ()
-  "Prompt for a project and task, and insert the id of the selected task of project into the current buffer."
+  "Insert task id into the current buffer.
+
+Prompt for a project and task, and insert the id of the selected task."
   (interactive)
   (reaper-ensure-project-tasks)
   (let* ((project (reaper-with-buffer (reaper-read-project (reaper-project-id (reaper-get-head-project)))))
