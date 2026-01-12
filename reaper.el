@@ -638,7 +638,7 @@ Make a METHOD call to PATH with PAYLOAD and call CALLBACK on completion."
             ("Authorization" . ,(concat "Bearer " reaper-api-key))
             ("Harvest-Account-Id" . ,reaper-account-id))))
     (url-retrieve request-url
-                  #'(lambda (&rest ignored)
+                  #'(lambda (&rest _ignored)
                       (let ((async-buffer (current-buffer)))
                         (with-temp-buffer
                           (when (fboundp 'url-http--insert-file-helper)
