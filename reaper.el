@@ -327,7 +327,8 @@ Prompt for a project and task, and insert the id of the selected task."
   "Clear cached projects and tasks."
   ;; TODO: mark all interactive commands that doesn't make sense in
   ;; any other mode.
-  (interactive nil reaper-mode)
+  (declare (modes reaper-mode))
+  (interactive)
   (setq reaper-project-tasks nil))
 
 (defun reaper-ensure-project-tasks ()
