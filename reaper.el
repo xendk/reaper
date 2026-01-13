@@ -760,7 +760,10 @@ A calculation is a number of time strings (as parsed by
 (defun reaper--time-to-hours (time)
   "Convert TIME to hours.
 TIME is in HH:MM or MM format. Returns a float."
-  (when (string-match (rx bos (regexp reaper--time-regexp) eos) time)
+  ;; Using this concat rather than (rx ... (regexp
+  ;; reaper--time-regexp)), as the regexp form is only supported in
+  ;; Emacs 27+.
+  (when (string-match (concat "^" reaper--time-regexp "$") time)
     (let ((hours (match-string-no-properties 1 time))
           (minutes (string-to-number (match-string-no-properties 2 time))))
       (+ (if hours (string-to-number hours) 0) (/ (float minutes) 60)))))
