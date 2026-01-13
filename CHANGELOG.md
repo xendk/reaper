@@ -12,6 +12,11 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
   `reaper-refresh-buffer` is the user visible part.
 - Misc linting fixes.
 - Replaced Cask with Eldev for development.
+- Mark functions that only makes sense in a reaper buffer so they
+  don't show up in `M-x`. This requires that the user has customized
+  `read-extended-command-predicate` to
+  `command-completion-default-include-p` or another predicate that
+  implements this.
 
 ### Removed
 - Explicit Ivy support. Ivy hooks into `completing-read` anyway, 

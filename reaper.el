@@ -325,8 +325,6 @@ Prompt for a project and task, and insert the id of the selected task."
 
 (defun reaper-clear-project-tasks ()
   "Clear cached projects and tasks."
-  ;; TODO: mark all interactive commands that doesn't make sense in
-  ;; any other mode.
   (declare (modes reaper-mode))
   (interactive)
   (setq reaper-project-tasks nil))
@@ -341,6 +339,7 @@ Prompt for a project and task, and insert the id of the selected task."
 
 (defun reaper-refresh-project-tasks ()
   "Fetch projects and tasks from Harvest."
+  (declare (modes reaper-mode))
   (interactive)
   (reaper-with-buffer
    (unless reaper-project-tasks
@@ -368,6 +367,7 @@ Prompt for a project and task, and insert the id of the selected task."
 
 (defun reaper-refresh-buffer ()
   "Refresh Reaper buffer."
+  (declare (modes reaper-mode))
   (interactive)
   (unless (and (bound-and-true-p reaper-timeentries) (not reaper-timeentries-loading))
     (reaper-refresh-entries))
@@ -427,6 +427,7 @@ forward/back from reaper-date."
 (defun reaper-start-timer ()
   "Start the timer at point.
 Stops any previously running timers."
+  (declare (modes reaper-mode))
   (interactive)
   (when (tabulated-list-get-id)
     (reaper-api "PATCH" (format "time_entries/%s/restart" (tabulated-list-get-id)) nil "Started timer")
@@ -468,6 +469,7 @@ Stops any previously running timers."
 
 (defun reaper-delete-entry ()
   "Delete time entry at point."
+  (declare (modes reaper-mode))
   (interactive)
   (reaper-with-selected-entry
    (when (yes-or-no-p (format "Are you sure you want to delete \"%s\" in \"%s - %s\"?"
@@ -491,6 +493,7 @@ Stops any previously running timers."
 
 (defun reaper-edit-entry ()
   "Edit entry at point."
+  (declare (modes reaper-mode))
   (interactive)
   (reaper-ensure-project-tasks)
   (reaper-with-selected-entry
@@ -506,6 +509,7 @@ Stops any previously running timers."
 
 (defun reaper-edit-entry-project ()
   "Edit project of entry at point."
+  (declare (modes reaper-mode))
   (interactive)
   (reaper-ensure-project-tasks)
   (reaper-with-selected-entry
@@ -526,6 +530,7 @@ Stops any previously running timers."
 
 (defun reaper-edit-entry-task ()
   "Edit task of entry at point."
+  (declare (modes reaper-mode))
   (interactive)
   (reaper-ensure-project-tasks)
   (reaper-with-selected-entry
@@ -538,6 +543,7 @@ Stops any previously running timers."
 
 (defun reaper-edit-entry-description ()
   "Edit description of entry at point."
+  (declare (modes reaper-mode))
   (interactive)
   (reaper-ensure-project-tasks)
   (reaper-with-selected-entry
@@ -549,6 +555,7 @@ Stops any previously running timers."
 
 (defun reaper-edit-entry-time ()
   "Edit time of entry at point."
+  (declare (modes reaper-mode))
   (interactive)
   (reaper-with-selected-entry
    ;; If the timer is running add the time since the data was fetched.
