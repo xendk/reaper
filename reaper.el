@@ -27,6 +27,7 @@
 ;; Interactive tool for tracking time with Harvest.
 
 ;; TODO: provide history for read-string
+;;; Code:
 (require 'cl-lib)
 (require 'json)
 (require 'url)
@@ -60,7 +61,6 @@
 (defconst reaper--time-regexp
   (rx (optional (group-n 1 (optional digit)) ":") (group-n 2 (one-or-more digit))))
 
-;;; Code:
 (defvar reaper-buffer-name " *Reaper*"
   "Name for Reaper buffer.")
 
