@@ -26,7 +26,7 @@
 
 ;; Interactive tool for tracking time with Harvest.
 
-;; TODO: provide history for read-string
+
 ;;; Code:
 (require 'cl-lib)
 (require 'json)
@@ -76,6 +76,15 @@ Each function is called with one argument NOTE which is the user
 supplied note. If one of these functions returns a cons
 of (project_id . task_id), those are used and the rest are not
 called.")
+
+(defvar reaper-description-history nil
+  "History of descriptions.")
+
+(defvar reaper-date-history nil
+  "History of dates.")
+
+(defvar reaper-time-history nil
+  "History of time inputs.")
 
 (defvar-local reaper-user-id nil
   "Cached id of user.")
@@ -412,7 +421,7 @@ which case the month is the previous.
 Alternatively +<days>/-<days> can be used to move X days
 forward/back from reaper-date."
   (interactive)
-  (reaper--goto-date (read-string "Goto date: ")))
+  (reaper--goto-date (read-string "Goto date: " nil 'reaper-date-history)))
 
 (defun reaper-goto-date+1 ()
   "Go a day forward."
@@ -450,7 +459,7 @@ Stops any previously running timers."
   "Create a new running timer."
   (interactive)
   (reaper-ensure-project-tasks)
-  (let* ((notes (read-string "Description: "))
+  (let* ((notes (read-string "Description: " nil 'reaper-description-history))
          (autofile (run-hook-with-args-until-success 'reaper-autofile-functions notes))
          (project
           (or (and (consp autofile) (reaper-get-project (car autofile)))
@@ -499,7 +508,7 @@ Stops any previously running timers."
   (reaper-with-selected-entry
    (let* ((project (reaper-read-project (reaper-entry-project-id entry)))
           (task-id (reaper-read-task project (reaper-entry-task-id entry)))
-          (notes (read-string "Description: " (reaper-entry-notes entry)))
+          (notes (read-string "Description: " (reaper-entry-notes entry) 'reaper-description-history))
           (harvest-payload (make-hash-table :test 'equal)))
      (puthash "project_id" (cdr (assoc :id project)) harvest-payload)
      (puthash "task_id" task-id harvest-payload)
@@ -547,7 +556,7 @@ Stops any previously running timers."
   (interactive)
   (reaper-ensure-project-tasks)
   (reaper-with-selected-entry
-   (let* ((notes (read-string "Description: " (reaper-entry-notes entry)))
+   (let* ((notes (read-string "Description: " (reaper-entry-notes entry) 'reaper-description-history))
           (harvest-payload (make-hash-table :test 'equal)))
      (puthash "notes" notes harvest-payload)
      (reaper-api "PATCH" (format "time_entries/%s" (reaper-entry-id entry)) harvest-payload "Updated entry")
@@ -560,7 +569,7 @@ Stops any previously running timers."
   (reaper-with-selected-entry
    ;; If the timer is running add the time since the data was fetched.
    (let* ((time (reaper--hours-to-time (reaper--hours-accounting-for-running-timer entry)))
-          (new-time (reaper--time-to-hours-calculation (read-string "New time: " time)))
+          (new-time (reaper--time-to-hours-calculation (read-string "New time: " time 'reaper-time-history)))
           (harvest-payload (make-hash-table :test 'equal)))
      (puthash "hours" new-time harvest-payload)
      (reaper-api "PATCH" (format "time_entries/%s" (reaper-entry-id entry)) harvest-payload "Updated entry")
