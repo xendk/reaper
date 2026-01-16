@@ -92,7 +92,9 @@ called.")
 (defvar reaper-task-history nil
   "History of task selections.")
 
-;; Set history length to 10 for project and task history variables
+(put 'reaper-description-history 'history-length 100)
+(put 'reaper-date-history 'history-length 10)
+(put 'reaper-time-history 'history-length 10)
 (put 'reaper-project-history 'history-length 10)
 (put 'reaper-task-history 'history-length 10)
 
