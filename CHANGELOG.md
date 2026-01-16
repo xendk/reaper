@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
 ### Added
 - History for description/date/and time prompts.
+- History for project/task selection.
 
 ### Changed
 - Delete prompt to have the note before the project task. I find it's

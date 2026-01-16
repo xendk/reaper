@@ -86,6 +86,16 @@ called.")
 (defvar reaper-time-history nil
   "History of time inputs.")
 
+(defvar reaper-project-history nil
+  "History of project selections.")
+
+(defvar reaper-task-history nil
+  "History of task selections.")
+
+;; Set history length to 10 for project and task history variables
+(put 'reaper-project-history 'history-length 10)
+(put 'reaper-task-history 'history-length 10)
+
 (defvar-local reaper-user-id nil
   "Cached id of user.")
 
@@ -585,7 +595,7 @@ Stops any previously running timers."
                            reaper-project-tasks))
          (default (reaper-get-project default))
          (default-option (when default (concat "[" (reaper-project-code default) "] " (reaper-project-name default))))
-         (project (cdr (assoc (reaper--completing-read "Project: " projects default-option) projects))))
+         (project (cdr (assoc (reaper--completing-read "Project: " projects default-option 'reaper-project-history) projects))))
     project))
 
 (defun reaper-read-task (project &optional default)
@@ -594,7 +604,7 @@ Returns task id."
   (let*
       ((tasks (mapcar (lambda (task) (cons (cdr task) (car task))) (reaper-project-tasks project)))
        (default (when default (cdr (assoc default (reaper-project-tasks project)))))
-       (task-id (cdr (assoc (reaper--completing-read "Task: " tasks default) tasks))))
+       (task-id (cdr (assoc (reaper--completing-read "Task: " tasks default 'reaper-task-history) tasks))))
     task-id))
 
 (defun reaper-api (method path payload completion-message)
@@ -843,10 +853,10 @@ many days from reaper-date."
                                                    reaper-fetch-time)) 60) 60))
         0)))
 
-(defun reaper--completing-read (prompt options default)
-  "Complete with PROMPT, with OPTIONS and having DEFAULT."
-  ;; TODO: provide the history argument.
-  (completing-read prompt options nil t nil nil default))
+(defun reaper--completing-read (prompt options default &optional history)
+  "Complete with PROMPT, with OPTIONS and having DEFAULT.
+Optional HISTORY argument tracks completion history."
+  (completing-read prompt options nil t nil history default))
 
 (defun reaper--last-used (project task-id)
   "Save PROJECT and TASK-ID as last used."
