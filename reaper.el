@@ -609,31 +609,40 @@ Returns task id."
        (task-id (cdr (assoc (reaper--completing-read "Task: " tasks default 'reaper-task-history) tasks))))
     task-id))
 
+(defmacro reaper--with-envelope (method path payload &rest body)
+  "Run BODY with HTTP envelope.
+
+Prepare call to Harvest PATH with HTTP METHOD and PAYLOAD encoded as
+JSON."
+  `(let* ((url-request-method ,method)
+          (url-mime-language-string nil)
+          (url-mime-encoding-string nil)
+          (url-mime-accept-string "application/json")
+          (url-user-agent "Xen's Emacs client (fini@reload.dk)")
+          (url-request-data (if (or (string-equal method "POST")
+                                    (string-equal method "PATCH"))
+                                (encode-coding-string (json-encode ,payload) 'utf-8)
+                              nil))
+          (request-url (format "https://api.harvestapp.com/v2/%s" ,path))
+          (url-request-extra-headers
+           `(("Content-Type" . "application/json")
+             ("Authorization" . ,(concat "Bearer " reaper-api-key))
+             ("Harvest-Account-Id" . ,reaper-account-id))))
+     ,@body))
+
 (defun reaper-api (method path payload completion-message)
   "Make an METHOD call to PATH with PAYLOAD and COMPLETION-MESSAGE."
   (reaper--check-credentials)
-  (let* ((url-request-method method)
-         (url-mime-language-string nil)
-         (url-mime-encoding-string nil)
-         (url-mime-accept-string "application/json")
-         (url-user-agent "Xen's Emacs client (fini@reload.dk)")
-         (url-request-data (if (or (string-equal method "POST")
-                                   (string-equal method "PATCH"))
-                               (encode-coding-string (json-encode payload) 'utf-8)
-                             nil))
-         (request-url (format "https://api.harvestapp.com/v2/%s" path))
-         (url-request-extra-headers
-          `(("Content-Type" . "application/json")
-            ("Authorization" . ,(concat "Bearer " reaper-api-key))
-            ("Harvest-Account-Id" . ,reaper-account-id))))
-    (with-temp-buffer
-      (reaper-url-insert-file-contents request-url)
-      (goto-char (point-min))
-      (message "%s" completion-message)
-      ;; Ensure JSON false values is nil.
-      (defvar json-false)
-      (let ((json-false nil))
-        (json-read)))))
+  (reaper--with-envelope
+   method path payload
+   (with-temp-buffer
+     (reaper-url-insert-file-contents request-url)
+     (goto-char (point-min))
+     (message "%s" completion-message)
+     ;; Ensure JSON false values is nil.
+     (defvar json-false)
+     (let ((json-false nil))
+       (json-read)))))
 
 (defun reaper-url-insert-file-contents (url &optional visit beg end replace)
   "Quiet version of `url-insert-file-contents'.
@@ -653,35 +662,23 @@ URL, VISIT, BEG, END and REPLACE is the same as for
 
 Make a METHOD call to PATH with PAYLOAD and call CALLBACK on completion."
   (reaper--check-credentials)
-  (let* ((url-request-method method)
-         (url-mime-language-string nil)
-         (url-mime-encoding-string nil)
-         (url-mime-accept-string "application/json")
-         (url-user-agent "Xen's Emacs client (fini@reload.dk)")
-         (url-request-data (if (or (string-equal method "POST")
-                                   (string-equal method "PATCH"))
-                               (encode-coding-string (json-encode payload) 'utf-8)
-                             nil))
-         (request-url (format "https://api.harvestapp.com/v2/%s" path))
-         (url-request-extra-headers
-          `(("Content-Type" . "application/json")
-            ("Authorization" . ,(concat "Bearer " reaper-api-key))
-            ("Harvest-Account-Id" . ,reaper-account-id))))
-    (url-retrieve request-url
-                  #'(lambda (&rest _ignored)
-                      (let ((async-buffer (current-buffer)))
-                        (with-temp-buffer
-                          (when (fboundp 'url-http--insert-file-helper)
-                            ;; XXX: This is HTTP/S specific and should be moved to url-http
-                            ;; instead.  See bug#17549.
-                            (url-http--insert-file-helper async-buffer request-url))
-                          (url-insert-buffer-contents async-buffer request-url)
-                          (goto-char (point-min))
-                          ;; Ensure JSON false values is nil.
-                          (defvar json-false)
-                          (let ((json-false nil))
-                            (funcall callback (json-read))))))
-                  nil t)))
+  (reaper--with-envelope
+   method path payload
+   (url-retrieve request-url
+                 #'(lambda (&rest _ignored)
+                     (let ((async-buffer (current-buffer)))
+                       (with-temp-buffer
+                         (when (fboundp 'url-http--insert-file-helper)
+                           ;; XXX: This is HTTP/S specific and should be moved to url-http
+                           ;; instead.  See bug#17549.
+                           (url-http--insert-file-helper async-buffer request-url))
+                         (url-insert-buffer-contents async-buffer request-url)
+                         (goto-char (point-min))
+                         ;; Ensure JSON false values is nil.
+                         (defvar json-false)
+                         (let ((json-false nil))
+                           (funcall callback (json-read))))))
+                 nil t)))
 
 (defun reaper-alist-get (symbols alist)
   "Look up the value for the chain of SYMBOLS in ALIST."
