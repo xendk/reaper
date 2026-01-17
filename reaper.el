@@ -644,18 +644,25 @@ JSON."
      (let ((json-false nil))
        (json-read)))))
 
+(defun reaper--handle-response (buffer url)
+  "Handle response.
+
+BUFFER is the buffer to insert response into, URL is the URL fetched."
+  (when (fboundp 'url-http--insert-file-helper)
+    ;; XXX: This is HTTP/S specific and should be moved to url-http
+    ;; instead.  See bug#17549.
+    (url-http--insert-file-helper buffer url))
+  ;; TODO: check url-http-response-status
+  (url-insert-buffer-contents buffer url))
+
 (defun reaper-url-insert-file-contents (url)
   "Quiet version of `url-insert-file-contents'.
 URL, VISIT, BEG, END and REPLACE is the same as for
 `url-insert-file-contents'."
+  ;; The extra t to `url-retrieve-synchronously' is the quiet bit.
   (let ((buffer (url-retrieve-synchronously url t)))
     (unless buffer (signal 'file-error (list url "No Data")))
-    (when (fboundp 'url-http--insert-file-helper)
-      ;; XXX: This is HTTP/S specific and should be moved to url-http
-      ;; instead.  See bug#17549.
-      (url-http--insert-file-helper buffer url))
-    ;; TODO: check url-http-response-status
-    (url-insert-buffer-contents buffer url)))
+    (reaper--handle-response buffer url)))
 
 (defun reaper-api-async (method path payload callback)
   "Make an asynchronous HTTP call.
@@ -668,11 +675,7 @@ Make a METHOD call to PATH with PAYLOAD and call CALLBACK on completion."
                  #'(lambda (&rest _ignored)
                      (let ((async-buffer (current-buffer)))
                        (with-temp-buffer
-                         (when (fboundp 'url-http--insert-file-helper)
-                           ;; XXX: This is HTTP/S specific and should be moved to url-http
-                           ;; instead.  See bug#17549.
-                           (url-http--insert-file-helper async-buffer request-url))
-                         (url-insert-buffer-contents async-buffer request-url)
+                         (reaper--handle-response async-buffer request-url)
                          (goto-char (point-min))
                          ;; Ensure JSON false values is nil.
                          (defvar json-false)
