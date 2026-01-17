@@ -644,7 +644,7 @@ JSON."
      (let ((json-false nil))
        (json-read)))))
 
-(defun reaper-url-insert-file-contents (url &optional visit beg end replace)
+(defun reaper-url-insert-file-contents (url)
   "Quiet version of `url-insert-file-contents'.
 URL, VISIT, BEG, END and REPLACE is the same as for
 `url-insert-file-contents'."
@@ -653,9 +653,9 @@ URL, VISIT, BEG, END and REPLACE is the same as for
     (when (fboundp 'url-http--insert-file-helper)
       ;; XXX: This is HTTP/S specific and should be moved to url-http
       ;; instead.  See bug#17549.
-      (url-http--insert-file-helper buffer url visit))
+      (url-http--insert-file-helper buffer url))
     ;; TODO: check url-http-response-status
-    (url-insert-buffer-contents buffer url visit beg end replace)))
+    (url-insert-buffer-contents buffer url)))
 
 (defun reaper-api-async (method path payload callback)
   "Make an asynchronous HTTP call.
