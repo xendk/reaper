@@ -636,24 +636,27 @@ JSON."
   (reaper--with-envelope
    method path payload
    (with-temp-buffer
-     (reaper-url-insert-file-contents request-url)
-     (goto-char (point-min))
-     (message "%s" completion-message)
-     ;; Ensure JSON false values is nil.
-     (defvar json-false)
-     (let ((json-false nil))
-       (json-read)))))
+     (let ((data (reaper-url-insert-file-contents request-url)))
+       (message "%s" completion-message)
+       data))))
 
 (defun reaper--handle-response (buffer url)
   "Handle response.
 
-BUFFER is the buffer to insert response into, URL is the URL fetched."
+BUFFER is the buffer to insert response into, URL is the URL fetched.
+
+Returns the decoded JSON data."
   (when (fboundp 'url-http--insert-file-helper)
     ;; XXX: This is HTTP/S specific and should be moved to url-http
     ;; instead.  See bug#17549.
     (url-http--insert-file-helper buffer url))
   ;; TODO: check url-http-response-status
-  (url-insert-buffer-contents buffer url))
+  (url-insert-buffer-contents buffer url)
+  (goto-char (point-min))
+  ;; Ensure JSON false values is nil.
+  (defvar json-false)
+  (let ((json-false nil))
+    (json-read)))
 
 (defun reaper-url-insert-file-contents (url)
   "Quiet version of `url-insert-file-contents'.
@@ -675,12 +678,7 @@ Make a METHOD call to PATH with PAYLOAD and call CALLBACK on completion."
                  #'(lambda (&rest _ignored)
                      (let ((async-buffer (current-buffer)))
                        (with-temp-buffer
-                         (reaper--handle-response async-buffer request-url)
-                         (goto-char (point-min))
-                         ;; Ensure JSON false values is nil.
-                         (defvar json-false)
-                         (let ((json-false nil))
-                           (funcall callback (json-read))))))
+                         (funcall callback (reaper--handle-response async-buffer request-url)))))
                  nil t)))
 
 (defun reaper-alist-get (symbols alist)
