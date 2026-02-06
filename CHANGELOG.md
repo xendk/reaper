@@ -3,7 +3,9 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
-## [Unreleased]
+## 1.6.1 - [Unreleased]
+
+## [1.6.0] - 2026-02-07
 
 ### Added
 - History for description/date/and time prompts.
@@ -108,7 +110,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 ### Added
 - Initial implementation.
 
-[Unreleased]: https://github.com/xendk/reaper/compare/1.5.0...HEAD
+[Unreleased]: https://github.com/xendk/reaper/compare/v1.6.0...HEAD
+[1.6.0]: https://github.com/xendk/reaper/compare/1.5.0...1.6.0
 [1.5.0]: https://github.com/xendk/reaper/compare/1.4.0...1.5.0
 [1.4.0]: https://github.com/xendk/reaper/compare/1.3.0...1.4.0
 [1.3.0]: https://github.com/xendk/reaper/compare/1.2.1...1.3.0
