@@ -253,9 +253,7 @@ Used to relocate point to the same entry after redisplaying.")
   (interactive)
   (reaper--check-credentials)
   (reaper-with-buffer
-   ;; TODO: figure out arguments to reuse window not just in current
-   ;; frame but across all frames. And use NORECORD for good measure.
-   (pop-to-buffer (current-buffer))))
+   (pop-to-buffer (current-buffer) '(display-buffer-reuse-window (reusable-frames . visible)) t)))
 
 (defun reaper-get-running-timer-note ()
   "Return the note (description) of the current running timer.

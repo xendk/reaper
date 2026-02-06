@@ -21,6 +21,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
   `read-extended-command-predicate` to
   `command-completion-default-include-p` or another predicate that
   implements this.
+- Always reuse an existing window in a visible frame.
 
 ### Removed
 - Explicit Ivy support. Ivy hooks into `completing-read` anyway, 
