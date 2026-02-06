@@ -26,6 +26,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 ### Removed
 - Explicit Ivy support. Ivy hooks into `completing-read` anyway, 
 
+### Fixed
+- Use `reaper-with-buffer` in `reaper-ensure-project-tasks`, so we get
+  the right buffer local variable.
+
 ## 1.5.0 - 2025-01-23
 ### Added
 - Show currently shown date in mode-line.

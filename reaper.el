@@ -350,11 +350,9 @@ Prompt for a project and task, and insert the id of the selected task."
 
 (defun reaper-ensure-project-tasks ()
   "Ensure that we have project and tasks fetched."
-  ;; TODO: Should use reaper-with-buffer, unless we're sure all
-  ;; callers already did (which we're not as long as start-new-timer
-  ;; calls us.)
-  (unless (bound-and-true-p reaper-project-tasks)
-    (reaper-refresh-project-tasks)))
+  (reaper-with-buffer
+   (unless (bound-and-true-p reaper-project-tasks)
+     (reaper-refresh-project-tasks))))
 
 (defun reaper-refresh-project-tasks ()
   "Fetch projects and tasks from Harvest."
