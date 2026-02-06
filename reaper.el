@@ -643,10 +643,7 @@ BUFFER is the buffer to insert response into, URL is the URL fetched.
 
 Returns the decoded JSON data."
   (when (fboundp 'url-http--insert-file-helper)
-    ;; XXX: This is HTTP/S specific and should be moved to url-http
-    ;; instead.  See bug#17549.
     (url-http--insert-file-helper buffer url))
-  ;; TODO: check url-http-response-status
   (url-insert-buffer-contents buffer url)
   (goto-char (point-min))
   ;; Ensure JSON false values is nil.
