@@ -3,7 +3,7 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 
-## Unreleased
+## [Unreleased]
 
 ### Added
 - History for description/date/and time prompts.
@@ -30,11 +30,11 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 - Use `reaper-with-buffer` in `reaper-ensure-project-tasks`, so we get
   the right buffer local variable.
 
-## 1.5.0 - 2025-01-23
+## [1.5.0] - 2025-01-23
 ### Added
 - Show currently shown date in mode-line.
 
-## 1.4.0 - 2023-11-04
+## [1.4.0] - 2023-11-04
 ### Added
 - `reaper-get-entry`, `reaper-entry-id`, `reaper-entry-project-id`,
   `reaper-entry-project`, `reaper-entry-task-id`, `reaper-entry-task`,
@@ -61,7 +61,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 - Ensure the point is on the same time entry after re-displaying, even
   with a asynchronous fetching.
 
-## 1.3.0 - 2022-04-11
+## [1.3.0] - 2022-04-11
 ### Added
 - `e d` to edit entry description.
 - `e t` to edit entry task.
@@ -77,16 +77,16 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 - Current running timer indicator not showing up if point is after the
   running timer.
 
-## 1.2.1 - 2020-11-14
+## [1.2.1] - 2020-11-14
 ### Fixed
 - Fix `reaper-goto-date`.
 
-## 1.2.0 - 2020-11-14
+## [1.2.0] - 2020-11-14
 ### Added
 - Display total daily time.
 - Add `f`/`b` to go back/forwards a day.
 
-## 1.1.0 - 2019-09-21
+## [1.1.0] - 2019-09-21
 ### Added
 - `reaper-start-timer-and-quit-window`.
 - Autoload `reaper`.
@@ -104,6 +104,15 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/).
 - Use a `kill-buffer-hook` to cancel timer.
 - Make point stick around when deleting entries.
 
-## 1.0.0 - 2019-08-28
+## [1.0.0] - 2019-08-28
 ### Added
 - Initial implementation.
+
+[Unreleased]: https://github.com/xendk/reaper/compare/1.5.0...HEAD
+[1.5.0]: https://github.com/xendk/reaper/compare/1.4.0...1.5.0
+[1.4.0]: https://github.com/xendk/reaper/compare/1.3.0...1.4.0
+[1.3.0]: https://github.com/xendk/reaper/compare/1.2.1...1.3.0
+[1.2.1]: https://github.com/xendk/reaper/compare/1.2.0...1.2.1
+[1.2.0]: https://github.com/xendk/reaper/compare/1.1.0...1.2.0
+[1.1.0]: https://github.com/xendk/reaper/compare/1.0.0...1.1.0
+[1.0.0]: https://github.com/xendk/reaper/releases/tag/1.0.0
